@@ -1,0 +1,13 @@
+<module name="Castle">
+	<resources>
+		<resource path="assets/locale" prefix="locale" />
+		<resource path="assets/styles" prefix="style" />
+		<resource path="assets/images" prefix="images" />
+	</resources>
+	<themes>
+        <default>
+			<style resource="style/custom.css" />
+			<style resource="assets/styles/custom.css" />
+		</default>
+	</themes>
+</module>

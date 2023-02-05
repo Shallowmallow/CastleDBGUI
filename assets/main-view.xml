@@ -1,0 +1,22 @@
+<vbox style="padding: 5px;" width="100%" height="100%">
+    <menubar width="100%" id="menubar">
+        <menu text="File">
+            <menuitem id="mnew" text="New" shortcutText="Ctrl+N" />
+            <menuitem id="mopen" text="Open..." shortcutText="Ctrl+O" />
+            <menuitem id="msave" text="Save As..." shortcutText="Shift+S" />
+            <menuitem id="mclean" text="Clean Images" />
+            <menuitem text="Enable Compression" shortcutText="Ctrl+A" />
+            <menuitem id="mexit" text="Exit" shortcutText="Ctrl+Q" />
+        </menu>
+    </menubar>
+    <box width="100%" height="100%">
+        <tabview id="tabs" width="100%" height="100%" />
+        <hbox horizontalAlign="right">
+            <button id="new_sheet" text="New Sheet (ctrl+T)" allowFocus="false" />
+            <button id="new_column" text="New Column (ctrl+E)" allowFocus="false" disabled="true" />
+            <button id="new_line" text="New Line (Ins)" allowFocus="false" disabled="true" />
+            <button id="edit_types" text="Edit Types" allowFocus="false" disabled="true" />
+        </hbox>
+    </box>
+    <label id="info_label" text=" " width="100%"/>
+</vbox>

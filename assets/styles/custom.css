@@ -1,0 +1,58 @@
+.yop:active {
+    border: 1px solid $accent-color;
+    background-color: black;
+}
+/*
+.itemrenderer:active {
+    border: 1px solid $accent-color;
+    background-color: black;
+}*/
+.itemrenderer:cursored {
+    border: 1px solid $accent-color;
+    background-color: black;
+}
+/*
+.cursored {
+    border: 1px solid $accent-color;
+    background-color: black;
+}*/
+
+.yop {
+    border: 1px solid 0;
+    background-color: black;
+}
+
+.box_selected {
+    border: 1px solid 0;
+    border-color: red;
+}
+
+.box_selection {
+    border: 1px solid 0;
+    border-color: grey;
+}
+
+
+.color-picker-popup {
+    icon:none;
+    padding :none;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.color-picker-popup #selectedColorPreviewContainer {
+    padding: 0px;
+    background-color: $contrast-background-color;
+    border: none
+    border-radius: none
+    opacity: 1;
+    filter: none;
+}
+
+.color-picker-popup:disabled #selectedColorPreviewContainer {
+    filter: grayscale;
+    opacity: .3;
+}
+
