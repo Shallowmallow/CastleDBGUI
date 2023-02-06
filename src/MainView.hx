@@ -1,5 +1,7 @@
 package ;
 
+import components.SheetView;
+import haxe.io.Path;
 import haxe.ui.core.Screen;
 import haxe.ui.events.UIEvent;
 import dialogs.CreateSheetDialog;
@@ -34,7 +36,6 @@ class MainView extends VBox {
 					if (b == haxe.ui.containers.dialogs.Dialog.DialogButton.OK) {
 
 						prefs.curFile = files[0].fullPath;
-						trace("loaded");
 						load();
 						
 						//image.resource = "file://" +files[0].fullPath;
@@ -77,6 +78,16 @@ class MainView extends VBox {
 
         var t = new haxe.Timer(1000);
 		t.run = checkTime;
+
+		#if openfl
+		openfl.Lib.current.stage.window.onDropFile.add (function (path:String) {
+			if (Path.extension(path)=="cdb"){
+				prefs.curFile = path;
+				load();
+			}
+		 }); 
+		#end
+		
     }
 
     @:bind(new_sheet, MouseEvent.CLICK)
@@ -234,10 +245,7 @@ class MainView extends VBox {
 		history = [];
 		redo = [];
 		base = new cdb.Database();
-		trace("looaddd");
         #if sys
-		trace("looadddeee");
-		trace(sys.io.File.getContent(prefs.curFile));
 		try {
 			
 			base.load(sys.io.File.getContent(prefs.curFile));
@@ -265,6 +273,7 @@ class MainView extends VBox {
 	}
 
 	function loadSheets() {
+		Main.mainView.tabs.removeAllPages();
 		for (sheet in base.sheets) {
 			if (sheet.props.hide) continue;
 			var sheetView = createSheetView(sheet);
@@ -278,6 +287,8 @@ class MainView extends VBox {
 		var sheetView = new components.SheetView();
 		sheetView.text = s.name;
 		sheetView.sheet = s;
+		new_column.disabled = false;
+		if (s.columns.length > 0) new_line.disabled = false;
 		haxe.ui.Toolkit.callLater(function f() {
 			for (c in tabs.findComponents("tabbar-button", Component)) {
 				c.onRightClick = function(event) {

@@ -17,7 +17,7 @@ So you have to do
 * [x] load
 * [ ] clipboard copy/cut
 * [ ] level editor ???
-* [ ] drag drop  *.cdb files
+* [x] drag drop  *.cdb files
 * [ ] search ???
 * [ ] edit columns refresh
 * [ ] history
