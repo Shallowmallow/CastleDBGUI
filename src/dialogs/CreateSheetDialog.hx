@@ -36,7 +36,7 @@ class CreateSheetDialog extends Dialog {
 		buttons = DialogButton.CANCEL | "Create";
 		defaultButton = "Create";
 
-		sheet_name.registerEvent(UIEvent.USER_SUBMIT, function(e) {trace("entered");this.dispatch(e);});
+		sheet_name.registerEvent(UIEvent.SUBMIT, function(e) {trace("entered");this.dispatch(e);});
 
 		onDialogClosed = function(e:DialogEvent) {
 			
