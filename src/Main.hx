@@ -45,6 +45,24 @@ class Main {
 				mainView.newSheet(e);
 			case [true, 69, _]: // E
 				mainView.newColumn(e);
+			case [true, 67, _]: // C
+				var s = sheetView.cursor.getSelection();
+				var cursor = sheetView.cursor;
+				var data = [];
+				for( y in s.y1...s.y2+1 ) {
+					var obj = sheetView.sheet.lines[y];
+					var out = {};
+					for( x in s.x1...s.x2+1 ) {
+						var c = sheetView.sheet.columns[x];
+						var v = Reflect.field(obj, c.name);
+						if( v != null )
+							Reflect.setField(out, c.name, v);
+					}
+					data.push(out);
+				}
+				mainView.setClipBoard([for( x in s.x1...s.x2+1 ) sheetView.sheet.columns[x]], data);
+			case [true, 86, _]: // V
+				sheetView.paste(mainView.clipboard);
 			case [false, 37, true]: // Left
 				sheetView.cursor.moveLeft();
 			case [false, 37, false] if (!ccell.isOpen()): // Left
@@ -89,4 +107,42 @@ class Main {
 		if (e.canceled)
 			return;
 	}
+
+	/*
+			case 'V'.code if( ctrlDown ):
+			if( cursor.s == null || clipboard == null || js.node.webkit.Clipboard.getInstance().get("text")  != clipboard.text )
+				return;
+			var sheet = cursor.s;
+			var posX = cursor.x < 0 ? 0 : cursor.x;
+			var posY = cursor.y < 0 ? 0 : cursor.y;
+			for( obj1 in clipboard.data ) {
+				if( posY == sheet.lines.length )
+					sheet.newLine();
+				var obj2 = sheet.lines[posY];
+				for( cid in 0...clipboard.schema.length ) {
+					var c1 = clipboard.schema[cid];
+					var c2 = sheet.columns[cid + posX];
+					if( c2 == null ) continue;
+					var f = base.getConvFunction(c1.type, c2.type);
+					var v : Dynamic = Reflect.field(obj1, c1.name);
+					if( f == null )
+						v = base.getDefault(c2);
+					else {
+						// make a deep copy to erase references
+						if( v != null ) v = haxe.Json.parse(haxe.Json.stringify(v));
+						if( f.f != null )
+							v = f.f(v);
+					}
+					if( v == null && !c2.opt )
+						v = base.getDefault(c2);
+					if( v == null )
+						Reflect.deleteField(obj2, c2.name);
+					else
+						Reflect.setField(obj2, c2.name, v);
+				}
+				posY++;
+			}
+			sheet.sync();
+			refresh();
+			save();*/
 }

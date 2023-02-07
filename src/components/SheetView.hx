@@ -17,46 +17,101 @@ import haxe.ui.events.MouseEvent;
 import cdb.Data.Column as CdbCol;
 import cdb.Data;
 import cdb.Sheet;
+
 /*
-private typedef Cursor = {
+	private typedef Cursor = {
 	x:Int,
 	y:Int,
 	?select:{x:Int, y:Int},
 	?onchange:Void->Void,
 }*/
-
 class Cursor {
-	public var sheetView:SheetView= null;
-	public var x(default,set):Int = 0;
-	public var y(default,set):Int = 0;
+	public var sheetView:SheetView = null;
+	public var x(default, set):Int = 0;
+	public var y(default, set):Int = 0;
 
-	public function new(sheetView:SheetView){
+	public var select(default, set):{x:Int, y:Int} = null;
+
+	private function set_select(select:{x:Int, y:Int}) {
+		this.select = select;
+			for (c in sheetView.table.findComponents(FocusableItemRenderer)) {
+				c.removeClass(":selected");
+			}
+			if (select == null) return null;
+		var selection = getSelection();
+		for ( x in selection.x1...selection.x2 +1) {
+			for ( y in selection.y1...selection.y2 +1) {
+				for (c in sheetView.table.findComponents(FocusableItemRenderer)) {
+					var compoundRenderer = cast(c.parentComponent, ItemRenderer);
+		
+					if (compoundRenderer.itemIndex == y) {
+						var cc = compoundRenderer.findComponents(FocusableItemRenderer, 1);
+						var xIndex = cc.indexOf(c);
+						if (xIndex == x)
+							c.addClass(":selected");
+					}
+				};
+
+			}
+		}
+		return select;
+	}
+
+	public function getSelection() {
+		var x1 = if (x < 0) 0 else x;
+		var x2 = if (x < 0) sheetView.sheet.columns.length - 1 else if (select != null) select.x else x1;
+		var y1 = y;
+		var y2 = if (select != null) select.y else y1;
+		if (x2 < x1) {
+			var tmp = x2;
+			x2 = x1;
+			x1 = tmp;
+		}
+		if (y2 < y1) {
+			var tmp = y2;
+			y2 = y1;
+			y1 = tmp;
+		}
+		return {
+			x1: x1,
+			x2: x2,
+			y1: y1,
+			y2: y2
+		};
+	}
+
+
+
+	public function new(sheetView:SheetView) {
 		this.sheetView = sheetView;
 	}
 
 	private function set_x(x:Int) {
-
 		closeCell();
-		if (rendererForCursor() != null) rendererForCursor().removeClass(":cursored");
+		if (rendererForCursor() != null)
+			rendererForCursor().removeClass(":cursored");
 		this.x = x;
-		if (rendererForCursor() != null) rendererForCursor().addClass(":cursored");
+		if (rendererForCursor() != null)
+			rendererForCursor().addClass(":cursored");
 		return x;
 	}
 
 	private function set_y(y:Int) {
-		trace(y);
 		closeCell();
-		if (rendererForCursor() != null) rendererForCursor().removeClass(":cursored");
+		if (rendererForCursor() != null)
+			rendererForCursor().removeClass(":cursored");
 		this.y = y;
-		if (rendererForCursor() != null) rendererForCursor().addClass(":cursored");
+		if (rendererForCursor() != null)
+			rendererForCursor().addClass(":cursored");
 		return y;
 	}
 
-	public function closeCell()  {
+	public function closeCell() {
 		// should we save ???
 		var r = rendererForCursor();
-		if (r == null) return;
-        var cell = r.getComponentAt(0);
+		if (r == null)
+			return;
+		var cell = r.getComponentAt(0);
 		if ((cell is IClickableCell)) {
 			if (cast(cell, IClickableCell).isOpen()) {
 				cast(cell, IClickableCell).validateCell(false);
@@ -69,21 +124,21 @@ class Cursor {
 			var compoundRenderer = cast(c.parentComponent, ItemRenderer);
 
 			if (compoundRenderer.itemIndex == y) {
-				var cc = compoundRenderer.findComponents(FocusableItemRenderer,1);
+				var cc = compoundRenderer.findComponents(FocusableItemRenderer, 1);
 				var xIndex = cc.indexOf(c);
-				if (xIndex == x) return c;
+				if (xIndex == x)
+					return c;
 			}
 		}
 		return null;
 	}
 
 	public function setToRenderer(r:FocusableItemRenderer) {
-			var compoundRenderer = cast(r.parentComponent, ItemRenderer);
-			y = compoundRenderer.itemIndex ;
-			var cc = compoundRenderer.findComponents(FocusableItemRenderer,1);
-			x = cc.indexOf(r);
+		var compoundRenderer = cast(r.parentComponent, ItemRenderer);
+		y = compoundRenderer.itemIndex;
+		var cc = compoundRenderer.findComponents(FocusableItemRenderer, 1);
+		x = cc.indexOf(r);
 	}
-
 
 	public function moveDown() {
 		if (y + 1 >= sheetView.table.dataSource.size) {
@@ -107,11 +162,11 @@ class Cursor {
 	}
 
 	public function focusNext() {
-		if (x +1  < sheetView.focusableColumnsNbr()) {
+		if (x + 1 < sheetView.focusableColumnsNbr()) {
 			++x;
 			return;
 		}
-		if (y+1  < sheetView.table.dataSource.size) {
+		if (y + 1 < sheetView.table.dataSource.size) {
 			++y;
 			x = 0;
 			return;
@@ -124,8 +179,6 @@ class Cursor {
 		}
 		--x;
 	}
-
-
 }
 
 @xml('
@@ -139,19 +192,21 @@ class Cursor {
 ')
 class SheetView extends VBox {
 	public var sheet:Sheet;
-	public var cursor:Cursor;// = new Cursor(this);
+	public var cursor:Cursor; // = new Cursor(this);
 
 	public function new() {
 		super();
 		cursor = new Cursor(this);
 
-		//cursor.x = 0;
-		//cursor.y = 0;
+		// cursor.x = 0;
+		// cursor.y = 0;
 		cursor.sheetView = this;
 		table.selectionMode = "disabled";
 		table.allowFocus = false;
-		//FocusManager.instance.enabled = false;
+		// FocusManager.instance.enabled = false;
 	}
+
+	
 
 	@:bind(add_column, MouseEvent.CLICK)
 	private function addColumn(e) {
@@ -171,31 +226,43 @@ class SheetView extends VBox {
 	// For some reason don't well in openfl where you need a background color
 
 	/*
-	@:bind(table, haxe.ui.events.ItemEvent.COMPONENT_CLICK_EVENT)
-	private function clickCell(e:haxe.ui.events.ItemEvent) {
-		trace("table click llalalala");
-		trace(e.sourceEvent.target.findAncestor("clickable_cell", Component, "css"));
-		if ((e.sourceEvent.target.findAncestor("clickable_cell", Component, "css") == null)){
-			return;
-			var itemCell = cast(e.sourceEvent.target.findAncestor("clickable_cell", Component, "css"), components.IClickableCell);
-			itemCell.clickCell();
-		}
+		@:bind(table, haxe.ui.events.ItemEvent.COMPONENT_CLICK_EVENT)
+		private function clickCell(e:haxe.ui.events.ItemEvent) {
+			trace("table click llalalala");
+			trace(e.sourceEvent.target.findAncestor("clickable_cell", Component, "css"));
+			if ((e.sourceEvent.target.findAncestor("clickable_cell", Component, "css") == null)){
+				return;
+				var itemCell = cast(e.sourceEvent.target.findAncestor("clickable_cell", Component, "css"), components.IClickableCell);
+				itemCell.clickCell();
+			}
 	}*/
-
 	@:bind(table, haxe.ui.events.MouseEvent.CLICK)
 	private function clickTable(e:MouseEvent) {
+		if (!e.shiftKey) {
+			cursor.select = null;
+		}
 		var comps = findComponentsUnderPoint(e.screenX, e.screenY);
 		for (c in comps) {
 			if ((c.id == "cell")) {
+				if (e.shiftKey) {
+					var compoundRenderer = cast(c.parentComponent, ItemRenderer);
+					var y = compoundRenderer.itemIndex;
+					var cc = compoundRenderer.findComponents(FocusableItemRenderer, 1);
+					var x = cc.indexOf(cast c);
+					cursor.select = {x: x, y: y}
+					trace(cursor.select);
+					break;
+				}
+
 				var x = cursor.x;
 				var y = cursor.y;
 				cursor.setToRenderer(cast c);
 				if (cursor.x == x && cursor.y == y) {
-				if ((c.getComponentAt(0) is IClickableCell)){
-					var cell = cast(c.getComponentAt(0), IClickableCell);
-					cell.clickCell();
+					if ((c.getComponentAt(0) is IClickableCell)) {
+						var cell = cast(c.getComponentAt(0), IClickableCell);
+						cell.clickCell();
+					}
 				}
-			}
 			}
 		}
 	}
@@ -213,7 +280,6 @@ class SheetView extends VBox {
 
 		table.dataSource.clear();
 		trace(sheet.lines);
-		
 
 		if (sheet.columns.length > 5) {
 			table.percentContentWidth = null;
@@ -227,7 +293,6 @@ class SheetView extends VBox {
 			column.customStyle.minWidth = 72;
 			column.text = "";
 		}
-
 
 		var indexColumn = table.addColumn("num_index");
 		indexColumn.text = "";
@@ -305,20 +370,17 @@ class SheetView extends VBox {
 		trace("eee");
 
 		Toolkit.callLater(function f() {
-		cursor.x = cursor.x;
-		cursor.y = cursor.y;});
-
+			cursor.x = cursor.x;
+			cursor.y = cursor.y;
+		});
 	}
-
-	
-	
 
 	public function focusableColumnsNbr() {
 		var cols = sheet.columns.length;
-		if (sheet.isLevel()) ++cols;
+		if (sheet.isLevel())
+			++cols;
 		return cols;
 	}
-
 
 	public function refresh() {
 		trace(sheet.lines);
@@ -381,10 +443,7 @@ class SheetView extends VBox {
 				tFlags;
 			case TRef(sheet):
 				var tRef = new TRefCell();
-				trace("uu");
-				trace(sheet);
 				tRef.sheetName = sheet;
-				trace("ee");
 				tRef;
 			case TTilePos:
 				new TTileCell();
@@ -415,6 +474,51 @@ class SheetView extends VBox {
 		refresh();
 		Main.mainView.save();
 	}
+
+
+	public function paste(clipboard:{ text : String, data : Array<Dynamic>, schema : Array<Column>, }) {
+/*
+		if( cursor.s == null || clipboard == null || js.node.webkit.Clipboard.getInstance().get("text")  != clipboard.text )
+			return;*/
+		var base = Main.mainView.base;
+		var posX = cursor.x < 0 ? 0 : cursor.x;
+		var posY = cursor.y < 0 ? 0 : cursor.y;
+		for( obj1 in clipboard.data ) {
+			if( posY == sheet.lines.length )
+				sheet.newLine();
+			var obj2 = sheet.lines[posY];
+			for( cid in 0...clipboard.schema.length ) {
+				var c1 = clipboard.schema[cid];
+				var c2 = sheet.columns[cid + posX];
+				if( c2 == null ) continue;
+				var f = base.getConvFunction(c1.type, c2.type);
+				var v : Dynamic = Reflect.field(obj1, c1.name);
+				if( f == null )
+					v = base.getDefault(c2);
+				else {
+					// make a deep copy to erase references
+					if( v != null ) v = haxe.Json.parse(haxe.Json.stringify(v));
+					if( f.f != null )
+						v = f.f(v);
+				}
+				if( v == null && !c2.opt )
+					v = base.getDefault(c2);
+				if( v == null )
+					Reflect.deleteField(obj2, c2.name);
+				else
+					Reflect.setField(obj2, c2.name, v);
+			}
+			posY++;
+		}
+
+
+
+		sheet.sync();
+			refresh();
+			Main.mainView.save();
+
+	}
+
 
 	//// ---------------------------------  SHORTCUTS --------------------------------------- ////
 	// 	@:bind(this, haxe.ui.events.KeyboardEvent.KEY_PRESS)
@@ -937,5 +1041,4 @@ class SheetView extends VBox {
 			else
 				refresh();
 	}*/
-
 }

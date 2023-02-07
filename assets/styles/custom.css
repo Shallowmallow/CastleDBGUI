@@ -32,6 +32,11 @@
     border-color: grey;
 }
 
+.itemrenderer:selected {
+    border: 1px solid 0;
+    background-color: grey;
+}
+
 
 .color-picker-popup {
     icon:none;

@@ -13,9 +13,10 @@ So you have to do
 
 ## What's left to do for adaptation
 
-* [ ] save
+* [x] save
 * [x] load
-* [ ] clipboard copy/cut
+* [x] clipboard copy/paste
+* [ ] delete /cut
 * [ ] level editor ???
 * [x] drag drop  *.cdb files
 * [ ] search ???
