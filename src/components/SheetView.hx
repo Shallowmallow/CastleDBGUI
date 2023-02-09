@@ -18,13 +18,6 @@ import cdb.Data.Column as CdbCol;
 import cdb.Data;
 import cdb.Sheet;
 
-/*
-	private typedef Cursor = {
-	x:Int,
-	y:Int,
-	?select:{x:Int, y:Int},
-	?onchange:Void->Void,
-}*/
 class Cursor {
 	public var sheetView:SheetView = null;
 	public var x(default, set):Int = 0;
@@ -34,16 +27,17 @@ class Cursor {
 
 	private function set_select(select:{x:Int, y:Int}) {
 		this.select = select;
-			for (c in sheetView.table.findComponents(FocusableItemRenderer)) {
-				c.removeClass(":selected");
-			}
-			if (select == null) return null;
+		for (c in sheetView.table.findComponents(FocusableItemRenderer)) {
+			c.removeClass(":selected");
+		}
+		if (select == null)
+			return null;
 		var selection = getSelection();
-		for ( x in selection.x1...selection.x2 +1) {
-			for ( y in selection.y1...selection.y2 +1) {
+		for (x in selection.x1...selection.x2 + 1) {
+			for (y in selection.y1...selection.y2 + 1) {
 				for (c in sheetView.table.findComponents(FocusableItemRenderer)) {
 					var compoundRenderer = cast(c.parentComponent, ItemRenderer);
-		
+
 					if (compoundRenderer.itemIndex == y) {
 						var cc = compoundRenderer.findComponents(FocusableItemRenderer, 1);
 						var xIndex = cc.indexOf(c);
@@ -51,7 +45,6 @@ class Cursor {
 							c.addClass(":selected");
 					}
 				};
-
 			}
 		}
 		return select;
@@ -79,8 +72,6 @@ class Cursor {
 			y2: y2
 		};
 	}
-
-
 
 	public function new(sheetView:SheetView) {
 		this.sheetView = sheetView;
@@ -192,6 +183,7 @@ class Cursor {
 ')
 class SheetView extends VBox {
 	public var sheet:Sheet;
+	public var sheetName:String;
 	public var cursor:Cursor; // = new Cursor(this);
 
 	public function new() {
@@ -205,8 +197,6 @@ class SheetView extends VBox {
 		table.allowFocus = false;
 		// FocusManager.instance.enabled = false;
 	}
-
-	
 
 	@:bind(add_column, MouseEvent.CLICK)
 	private function addColumn(e) {
@@ -475,35 +465,58 @@ class SheetView extends VBox {
 		Main.mainView.save();
 	}
 
+	public function cut() {
+		copy();
+		delete();
+	}
 
-	public function paste(clipboard:{ text : String, data : Array<Dynamic>, schema : Array<Column>, }) {
-/*
-		if( cursor.s == null || clipboard == null || js.node.webkit.Clipboard.getInstance().get("text")  != clipboard.text )
-			return;*/
+	public function copy() {
+		var s = cursor.getSelection();
+		var data = [];
+		for (y in s.y1...s.y2 + 1) {
+			var obj = sheet.lines[y];
+			var out = {};
+			for (x in s.x1...s.x2 + 1) {
+				var c = sheet.columns[x];
+				var v = Reflect.field(obj, c.name);
+				if (v != null)
+					Reflect.setField(out, c.name, v);
+			}
+			data.push(out);
+		}
+		Main.mainView.setClipBoard([for (x in s.x1...s.x2 + 1) sheet.columns[x]], data);
+	}
+
+	public function paste(clipboard:{text:String, data:Array<Dynamic>, schema:Array<Column>,}) {
+		/*
+			if( cursor.s == null || clipboard == null || js.node.webkit.Clipboard.getInstance().get("text")  != clipboard.text )
+				return; */
 		var base = Main.mainView.base;
 		var posX = cursor.x < 0 ? 0 : cursor.x;
 		var posY = cursor.y < 0 ? 0 : cursor.y;
-		for( obj1 in clipboard.data ) {
-			if( posY == sheet.lines.length )
+		for (obj1 in clipboard.data) {
+			if (posY == sheet.lines.length)
 				sheet.newLine();
 			var obj2 = sheet.lines[posY];
-			for( cid in 0...clipboard.schema.length ) {
+			for (cid in 0...clipboard.schema.length) {
 				var c1 = clipboard.schema[cid];
 				var c2 = sheet.columns[cid + posX];
-				if( c2 == null ) continue;
+				if (c2 == null)
+					continue;
 				var f = base.getConvFunction(c1.type, c2.type);
-				var v : Dynamic = Reflect.field(obj1, c1.name);
-				if( f == null )
+				var v:Dynamic = Reflect.field(obj1, c1.name);
+				if (f == null)
 					v = base.getDefault(c2);
 				else {
 					// make a deep copy to erase references
-					if( v != null ) v = haxe.Json.parse(haxe.Json.stringify(v));
-					if( f.f != null )
+					if (v != null)
+						v = haxe.Json.parse(haxe.Json.stringify(v));
+					if (f.f != null)
 						v = f.f(v);
 				}
-				if( v == null && !c2.opt )
+				if (v == null && !c2.opt)
 					v = base.getDefault(c2);
-				if( v == null )
+				if (v == null)
 					Reflect.deleteField(obj2, c2.name);
 				else
 					Reflect.setField(obj2, c2.name, v);
@@ -511,15 +524,54 @@ class SheetView extends VBox {
 			posY++;
 		}
 
-
-
 		sheet.sync();
-			refresh();
-			Main.mainView.save();
-
+		refresh();
+		Main.mainView.save();
 	}
 
+	public function delete() {
+		if (sheet.props.isProps) {
+			/*
+				var l = getLine(cursor.s, cursor.y);
+				if( l != null )
+					Reflect.deleteField(cursor.s.lines[0], l.attr("colName"));
+			 */
+		} else if (cursor.x < 0) {
+			var s = cursor.getSelection();
+			var y = s.y2;
+			while (y >= s.y1) {
+				sheet.deleteLine(y);
+				y--;
+			}
+			cursor.y = s.y1;
+			cursor.select = null;
+		} else {
+			var s = cursor.getSelection();
+			for (y in s.y1...s.y2 + 1) {
+				var obj = sheet.lines[y];
+				for (x in s.x1...s.x2 + 1) {
+					var c = sheet.columns[x];
+					var def = Main.mainView.base.getDefault(c);
+					if (def == null)
+						Reflect.deleteField(obj, c.name);
+					else
+						Reflect.setField(obj, c.name, def);
+				}
+			}
+		}
+		refresh();
+		Main.mainView.save();
+	}
 
+	
+
+
+
+	/*
+
+	case 'Z'.code if( ctrlDown && pages.curPage < 0 ):
+		*/
+	
 	//// ---------------------------------  SHORTCUTS --------------------------------------- ////
 	// 	@:bind(this, haxe.ui.events.KeyboardEvent.KEY_PRESS)
 	// 	@:bind(this, haxe.ui.events.KeyboardEvent.KEY_DOWN)

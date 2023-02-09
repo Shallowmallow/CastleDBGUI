@@ -1,5 +1,6 @@
 package components;
 
+import cdb.Data.DisplayType;
 import haxe.ui.core.InteractiveComponent;
 import haxe.ui.components.NumberStepper;
 import haxe.ui.events.UIEvent;
@@ -44,6 +45,16 @@ class TIntCell extends InteractiveComponent implements ICell implements IClickab
 
 	public override function set_value(value:Dynamic):Dynamic {
 		label.text = "" + value;
+		var sheet = findAncestor(SheetView).sheet;
+		for ( c in sheet.columns) {
+			if (c.name ==id) {
+				if (c.display == DisplayType.Percent) {
+					label.text = "" + (Math.round(value * 10000)/100) + "%";
+
+				}
+			}
+		}
+		
         numberstepper.value = value;
 		return super.set_value(value);
 	}

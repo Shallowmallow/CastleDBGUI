@@ -1,5 +1,6 @@
 package dialogs;
 
+import cdb.Data;
 import haxe.ui.core.Component;
 import haxe.ui.components.Label;
 import haxe.ui.components.DropDown;
@@ -150,6 +151,9 @@ class CreateColumnDialog extends Dialog {
                 dropdown.dataSource.add("Default");
                 dropdown.dataSource.add("Percentage");
                 grid.addComponent(dropdown);
+				dropdown.onChange = function(e) {
+					valuesProp = dropdown.selectedItem;
+				}
                 if (col!= null) {
                     
                 }
@@ -386,6 +390,10 @@ class CreateColumnDialog extends Dialog {
             name: ""
 			//name:name //aname : v.name,
 		};
+
+		if (valuesProp == "Percentage") {
+			c.display = DisplayType.Percent;
+		}
 
         return c;
 

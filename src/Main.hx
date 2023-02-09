@@ -46,23 +46,16 @@ class Main {
 			case [true, 69, _]: // E
 				mainView.newColumn(e);
 			case [true, 67, _]: // C
-				var s = sheetView.cursor.getSelection();
-				var cursor = sheetView.cursor;
-				var data = [];
-				for( y in s.y1...s.y2+1 ) {
-					var obj = sheetView.sheet.lines[y];
-					var out = {};
-					for( x in s.x1...s.x2+1 ) {
-						var c = sheetView.sheet.columns[x];
-						var v = Reflect.field(obj, c.name);
-						if( v != null )
-							Reflect.setField(out, c.name, v);
-					}
-					data.push(out);
-				}
-				mainView.setClipBoard([for( x in s.x1...s.x2+1 ) sheetView.sheet.columns[x]], data);
+				sheetView.copy();
+			case [true, 88, _]: // X
+				sheetView.cut();
 			case [true, 86, _]: // V
 				sheetView.paste(mainView.clipboard);
+			case [true, 90, _]: // Z
+				trace("undo");
+				mainView.undo();
+			case [false, 46, _]: // del
+				sheetView.delete();
 			case [false, 37, true]: // Left
 				sheetView.cursor.moveLeft();
 			case [false, 37, false] if (!ccell.isOpen()): // Left

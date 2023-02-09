@@ -16,14 +16,15 @@ So you have to do
 * [x] save
 * [x] load
 * [x] clipboard copy/paste
-* [ ] delete /cut
+* [x] delete /cut
+* [ ] select line delete
 * [ ] level editor ???
 * [x] drag drop  *.cdb files
 * [ ] search ???
 * [ ] edit columns refresh
 * [ ] history
 * [ ] separators
-* [ ] displays
+* [x] displays
 
 * [ ] custom types
 * [ ] float/list/properties/dynamic/data layer/tile layer/tile pos
