@@ -2,6 +2,7 @@ package popups;
 
 import haxe.ui.containers.menus.Menu;
 import components.SheetView;
+import cdb.Data.Separator;
 
 @:xml('
 <menu>
@@ -17,28 +18,51 @@ import components.SheetView;
 class LinePopup extends Menu {
     public function new(sheetView:SheetView, index:Int) {
         super();
+
+        var sheet = sheetView.sheet;
+
+        var index = sheetView.cursor.y;
+
+        //var sepIndex = Lambda.indexOf(sheet.separators, index);
+        //nsep.selected = sepIndex >= 0;
+
+        nins.onClick = function(e) {
+            sheetView.insertLine(index);
+        };
+
+        nup.onClick = function(e) {
+            sheet.moveLine( index, -1);
+            sheetView.refresh();
+        };
+
+        ndown.onClick = function(e) {
+            sheet.moveLine( index, 1);
+            sheetView.refresh();
+        };
+
+        ndel.onClick = function(e) {
+            sheet.deleteLine(index);
+            sheetView.refresh();
+            Main.mainView.save();
+        };
+
+        nsep.onClick = function(e) {
+            if (nsep.selected) {
+                var separator:Separator =  {index: index};
+                sheetView.sheet.separators.push(separator);
+                sheetView.refresh();
+                
+            }
+        }
+
+
     }
 }
 
 /*
 
 function popupLine( sheet : Sheet, index : Int ) {
-    var sepIndex = Lambda.indexOf(sheet.separators, index);
-    nsep.checked = sepIndex >= 0;
-    nins.click = function() {
-        newLine(sheet, index);
-    };
-    nup.click = function() {
-        moveLine(sheet, index, -1);
-    };
-    ndown.click = function() {
-        moveLine(sheet, index, 1);
-    };
-    ndel.click = function() {
-        sheet.deleteLine(index);
-        refresh();
-        save();
-    };
+    
     nsep.click = function() {
         if( sepIndex >= 0 ) {
             sheet.separators.splice(sepIndex, 1);
