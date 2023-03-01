@@ -44,6 +44,7 @@ class TStringCell extends InteractiveComponent implements ICell implements IClic
 		allowFocus = true; // Why ??? Needed to work
 		haxe.ui.Toolkit.callLater(function f() {
             textfield.show();
+			textfield.focus = false;
 			textfield.focus = true;
 		});
 	}
