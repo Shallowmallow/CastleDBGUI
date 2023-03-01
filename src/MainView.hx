@@ -55,7 +55,7 @@ class MainView extends VBox {
 						saveWithHistory(sdata);
 						}
 					}, {
-						name: Sys.getEnv("HOME"),
+						#if sys name: Sys.getEnv("HOME"), #end
 						text: sdata.d
 					}, {
 						extensions: [{extension: ".cdb"}],
@@ -90,9 +90,9 @@ class MainView extends VBox {
 	var openedList:Map<String, Bool>;
 	var existsCache:Map<String, {t:Float, r:Bool}>;
 
-	var curSavedData:HistoryElement;
-	var history:Array<HistoryElement> = [];
-	var redo:Array<HistoryElement> = [];
+	public var curSavedData:HistoryElement;
+	public var history:Array<HistoryElement> = [];
+	public var redo:Array<HistoryElement> = [];
 
 	var lastSave:Float;
 
@@ -229,6 +229,7 @@ class MainView extends VBox {
 		
 		if (prefs.curFile == null)
 			return;
+		#if sys
 		var tmp = Sys.getEnv("TMP");
 		if (tmp == null)
 			tmp = Sys.getEnv("TMPDIR");
@@ -248,6 +249,7 @@ class MainView extends VBox {
 		try
 			sys.FileSystem.deleteFile(tmpFile)
 		catch (e:Dynamic) {};
+		#end
 		lastSave = getFileTime();
 	}
 
@@ -428,10 +430,50 @@ class MainView extends VBox {
 			data : data,
 			schema : schema,
 		};
-		#if js
+		#if node
 		js.node.webkit.Clipboard.getInstance().set(clipboard.text, "text");
 		#elseif openfl 
 		openfl.desktop.Clipboard.generalClipboard.setData(openfl.desktop.ClipboardFormats.TEXT_FORMAT, clipboard.text);
 		#end
+	}
+
+
+
+	public function undo() {
+		trace(history.length);
+		if( history.length > 0 ) {
+			for ( i in 0...tabs.pageCount) {
+				var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+				sheetView.sheetName = sheetView.sheet.name;
+			}
+			redo.push(curSavedData);
+			curSavedData = Main.mainView.history.pop();
+			quickLoad(curSavedData);
+			refreshSheets();
+			save(false);
+		}
+	}
+
+	public function redoFunc() {
+		if( redo.length > 0 ) {
+			for ( i in 0...tabs.pageCount) {
+				var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+				sheetView.sheetName = sheetView.sheet.name;
+			}
+			history.push(curSavedData);
+			curSavedData = redo.pop();
+			quickLoad(curSavedData);
+			refreshSheets();
+			save(false);
+		}
+	}
+
+	function refreshSheets() {
+		for ( i in 0...tabs.pageCount) {
+			var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+			var sheet = base.getSheet(sheetView.sheetName);
+			sheetView.sheet = sheet;
+			sheetView.refresh();
+		}
 	}
 }

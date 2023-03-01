@@ -65,6 +65,11 @@ class SheetUtils {
 			o.width = 128;
 			o.height = 128;
 		}
+/*
+		var sep:cdb.Data.Separator = {title:"separator"};
+		trace(sep);
+		var o : Dynamic = s.newLine();
+			o.separator= sep;*/
 	}
 
     public static function changed( sheet : Sheet, c : Column, index : Int, old : Dynamic ) {

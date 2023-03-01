@@ -35,7 +35,10 @@ class TIntCell extends InteractiveComponent implements ICell implements IClickab
 		label.hide();
 		numberstepper.pos = Std.parseInt(label.text);
 		allowFocus = true; // Why ??? Needed to work
-		numberstepper.focus = true;
+		haxe.ui.Toolkit.callLater(function f() {
+			numberstepper.focus = false;
+			numberstepper.focus = true;
+		});
 	}
 
 	public function closeCell() {

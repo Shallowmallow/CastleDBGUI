@@ -128,7 +128,32 @@ class CreateColumnDialog extends Dialog {
             }
 
             else if (e.button == "Modify") {
-                sheetView.refresh();
+				var column = createColumn(column_type.selectedItem.type, sheetView.sheet);
+				column.name = column_name.text;
+				column.opt  = !required.selected;
+
+				col.name = column.name;
+				col.type = column.type;
+				if (column.typeStr != null) col.typeStr = column.typeStr;
+				if (column.opt != null) col.opt  = column.opt;
+				if (column.kind != null) col.kind = column.kind;
+				if (column.display != null) col.display = column.display;
+				sheetView.refresh();
+
+				/*
+                column.name = column_name.text;
+				column.opt  = !required.selected;
+				this.col.name = column.name;
+				var name : String;
+				var type : ColumnType;
+				var typeStr : String;
+				@:optional var opt : Bool;
+				@:optional var display : DisplayType;
+				@:optional var kind : ColumnKind;
+				@:optional var scope : Int;
+				@:optional var documentation : String;
+				@:optional var editor : Any;
+                sheetView.refresh();*/
             }
 
         }
@@ -151,12 +176,14 @@ class CreateColumnDialog extends Dialog {
                 dropdown.dataSource.add("Default");
                 dropdown.dataSource.add("Percentage");
                 grid.addComponent(dropdown);
+				
+				if (col!= null) {
+					if (col.display == DisplayType.Percent) dropdown.selectedItem = "Percentage";
+                }
 				dropdown.onChange = function(e) {
 					valuesProp = dropdown.selectedItem;
 				}
-                if (col!= null) {
-                    
-                }
+                
             case "enum", "flags":
                 var label = new Label();
                 label.text = "Possible Values";
@@ -165,6 +192,15 @@ class CreateColumnDialog extends Dialog {
                 var textfield = new TextField();
                 textfield.addClass("type_custom");
                 grid.addComponent(textfield);
+				if (col!= null) {
+					switch (col.type) {
+						case TFlags(values):
+							textfield.text = values.join(",");
+						case TEnum(values):
+							textfield.text = values.join(",");
+						default:
+					}
+                }
                 textfield.onChange = function(e) {
                     valuesProp =  textfield.text;
                 }
@@ -181,6 +217,14 @@ class CreateColumnDialog extends Dialog {
 				dropdown.onChange = function (e) {
 					valuesProp = dropdown.selectedItem.text;
 				}
+				if (col!= null) {
+					switch (col.type) {
+						case TRef(sheet):
+							dropdown.selectedItem = sheet;
+						default:
+					}
+				}
+
                 grid.addComponent(dropdown);
             case _:
 

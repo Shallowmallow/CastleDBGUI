@@ -91,9 +91,14 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
         var imageData = Main.mainView.getImageData(value);
 		var extension = imageData.substring(11, imageData.indexOf(";"));
 		var base64 = imageData.substring(imageData.indexOf(";")+8);
+		#if openfl
 		openfl.display.BitmapData.loadFromBase64(base64, extension).onComplete(function(bitmap) {
 			image.resource = bitmap;
 		});
+		#else if heaps
+		//haxe.crypto.Base64.decode(data);
+
+		#end
         return super.set_value(value);
     }
 

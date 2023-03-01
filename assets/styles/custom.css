@@ -11,6 +11,11 @@
     border: 1px solid $accent-color;
     background-color: black;
 }
+
+.tableview .compounditemrenderer:line-selected {
+    border: 1px solid $accent-color;
+    border-color: red;
+}
 /*
 .cursored {
     border: 1px solid $accent-color;

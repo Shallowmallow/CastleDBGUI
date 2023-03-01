@@ -17,13 +17,13 @@ So you have to do
 * [x] load
 * [x] clipboard copy/paste
 * [x] delete /cut
-* [ ] select line delete
+* [x] select line delete
 * [ ] level editor ???
 * [x] drag drop  *.cdb files
 * [ ] search ???
-* [ ] edit columns refresh
-* [ ] history
-* [ ] separators
+* [x] edit columns refresh
+* [ ] history half done
+* [ ] separators half done
 * [x] displays
 
 * [ ] custom types
@@ -38,7 +38,7 @@ So you have to do
 ## Shortcuts done
 
 * [x] INSERT line
-* [ ] DELETE
+* [x] DELETE
 * [x] LEFT UP RIGHT DOWN
 * [x] ESC
 * [X] SPACE
@@ -47,12 +47,16 @@ So you have to do
 
 ## Known Bugs
 
+BUG Reference to sheet when it has no columns etc
+
 BUG  focus_out never do anything when app gets out of focus
 BUG keyboards not working when getting out of dialog
 
 BUG adding column to a level
 BUG Resizing tables
 BUG When typing enter in a flag, it also selects a flag
+
+right click on right clicked line not on curosr
 
 ## PR
 

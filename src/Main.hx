@@ -54,7 +54,7 @@ class Main {
 			case [true, 90, _]: // Z
 				trace("undo");
 				mainView.undo();
-			case [false, 46, _]: // del
+			case [false, 46, _] if (!ccell.isOpen()): // del
 				sheetView.delete();
 			case [false, 37, true]: // Left
 				sheetView.cursor.moveLeft();
