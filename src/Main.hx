@@ -18,14 +18,36 @@ class Main {
 		app.ready(function() {
 			mainView = new MainView();
 			app.addComponent(mainView);
-			Screen.instance.registerEvent(haxe.ui.events.KeyboardEvent.KEY_PRESS, shortcutKey);
-			Screen.instance.registerEvent(haxe.ui.events.KeyboardEvent.KEY_DOWN, shortcutKey, -9999);
+			#if heaps
+			
+			Screen.instance.registerEvent(haxe.ui.events.KeyboardEvent.KEY_PRESS, shortcutKey, -9999);
+			#else
+			Screen.instance.registerEvent(haxe.ui.events.KeyboardEvent.KEY_DOWN, shortcutKey);
+			Screen.instance.registerEvent(haxe.ui.events.KeyboardEvent.KEY_UP, upKey);
+			#end
 
 			app.start();
 		});
 	}
 
+	public static var downKey:Int =0;
+
+	static function upKey(e) {
+		downKey = 0;
+	}
+
 	static function shortcutKey(e:haxe.ui.events.KeyboardEvent) {
+		trace(e);
+		var isKeyPressedContinuously:Bool = false;
+		if (downKey == 0) {
+			downKey = e.keyCode;
+		}
+		else {
+			isKeyPressedContinuously = true;
+			
+		}
+		
+		
 		var sheetView = mainView.shownSheetView();
 		if (sheetView == null)
 			return;
@@ -40,22 +62,9 @@ class Main {
 				null;
 			}
 		}
+
+		// First key events that accept multiple key downs
 		switch ([e.ctrlKey, e.keyCode, ccell == null]) {
-			case [true, 84, _]: // T
-				mainView.newSheet(e);
-			case [true, 69, _]: // E
-				mainView.newColumn(e);
-			case [true, 67, _]: // C
-				sheetView.copy();
-			case [true, 88, _]: // X
-				sheetView.cut();
-			case [true, 86, _]: // V
-				sheetView.paste(mainView.clipboard);
-			case [true, 90, _]: // Z
-				trace("undo");
-				mainView.undo();
-			case [false, 46, _] if (!ccell.isOpen()): // del
-				sheetView.delete();
 			case [false, 37, true]: // Left
 				sheetView.cursor.moveLeft();
 			case [false, 37, false] if (!ccell.isOpen()): // Left
@@ -72,9 +81,37 @@ class Main {
 				sheetView.cursor.moveDown();
 			case [false, 40, false] if (!ccell.isOpen()): // DOWN
 				sheetView.cursor.moveDown();
+			default:
+		}
+
+
+		if (isKeyPressedContinuously) return;
+
+		switch ([e.ctrlKey, e.keyCode, ccell == null]) {
+			case [true, 84, _]: // T
+				mainView.newSheet(e);
+			case [true, 69, _]: // E
+				mainView.newColumn(e);
+			case [true, 67, _]: // C
+				sheetView.copy();
+			case [true, 88, _]: // X
+				sheetView.cut();
+			case [true, 86, _]: // V
+				sheetView.paste(mainView.clipboard);
+			case [true, 90, _]: // Z
+				trace("undo");
+				mainView.undo();
+			case [false, 46, _] if (!ccell.isOpen()): // del
+				sheetView.delete();
+			
 			case [false, 45, _]: // INS
 				var sheetView = mainView.shownSheetView();
 				sheetView.insertLine(sheetView.cursor.y);
+			case [false, 96|97|98|99|100|101|102|103, false]: // ESCAPE
+				if (ccell.isOpen() && ((ccell is components.TFlagsCell))) {
+					var flags = cast (ccell, components.TFlagsCell);
+					flags.pressKeyCode(e.keyCode);
+				}
 			case [false, 27, false]: // ESCAPE
 				if (ccell.isOpen()) {
 					ccell.closeCell();

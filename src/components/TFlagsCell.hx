@@ -57,18 +57,18 @@ class TFlagsCell extends DropDown implements ICell implements IClickableCell {
     }
 
     public function clickCell() {
-        trace("aaaaa");
-        var builder:DropDownBuilder = cast(_compositeBuilder, DropDownBuilder);
-        trace("aaaaa");
-        var handler = cast(builder.handler, MyDropDownHandler);
-        trace("aaaaa");
-        //cast(handler.component, IFocusable).allowFocus = false;
-        //trace("aaaaa");
-        Toolkit.callLater(function f(){
-            Toolkit.callLater(function f(){
         showDropDown();
-    });
-    });
+    }
+
+    public function pressKeyCode(keyCode:Int) {
+        var builder:DropDownBuilder = cast(_compositeBuilder, DropDownBuilder);
+        var handler = cast(builder.handler, MyDropDownHandler);
+
+
+        var bitPosition = keyCode - 96;
+        
+        if (bitPosition >= handler.checkBoxes().length) return;
+        handler.checkBoxes()[bitPosition].selected = !handler.checkBoxes()[bitPosition] .selected;
     }
 
     public function closeCell() {
@@ -79,6 +79,7 @@ class TFlagsCell extends DropDown implements ICell implements IClickableCell {
     public override function set_value(value:Dynamic):Dynamic {
         if ((value is Int) == false) return this.value;
 
+        if (value == 0) text = "no flags";
         var builder:DropDownBuilder = cast(_compositeBuilder, DropDownBuilder);
         var handler = cast(builder.handler, MyDropDownHandler);
         handler.setFlagsBit(value);
@@ -120,9 +121,14 @@ class MyDropDownHandlerView extends VBox {
     }
 
     public function setFlags(a:Array<String>) {
+        var i = 0;
         for ( s in a) {
             var checkBox = new haxe.ui.components.CheckBox();
-            checkBox.text = s;
+            checkBox.text = '($i)' +s;
+            checkBox.userData = s;
+            checkBox.allowFocus = false;
+            checkBox.findComponent(CheckBoxValue).allowFocus = false;
+            i++;
             
             grid.addComponent(checkBox);
         }
@@ -140,6 +146,10 @@ class MyDropDownHandler extends DropDownHandler {
             _view = new MyDropDownHandlerView();
         }
         return _view;
+    }
+
+    public function checkBoxes() {
+        return _view.grid.findComponents(CheckBox);
     }
 
     public function setFlags(a:Array<String>) {
@@ -184,14 +194,13 @@ class MyDropDownHandler extends DropDownHandler {
         for (c in _view.grid.findComponents(CheckBox)) {
             val &= ~(1 << i);
             if (c.selected) {
-                items.push(c.text);
+                items.push(c.userData);
 
                 val |= 1 << i;
             }
             i++;
         }
         cast(_dropdown, TFlagsCell).bitValue = val;
-        trace(cast(_dropdown, TFlagsCell).bitValue);
         _dropdown.text = items.join(", ");
         _dropdown.dispatch(new UIEvent(UIEvent.CHANGE));
     }
