@@ -54,7 +54,6 @@ BUG keyboards not working when getting out of dialog
 
 BUG adding column to a level
 BUG Resizing tables
-BUG When typing enter in a flag, it also selects a flag
 
 right click on right clicked line not on curosr
 
