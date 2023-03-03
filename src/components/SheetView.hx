@@ -80,32 +80,34 @@ class Cursor {
 	private function set_x(x:Int) {
 		closeCell();
 		var cellRenderer = rendererForCursor();
-		if (cellRenderer != null){
+		if (cellRenderer != null) {
 			cellRenderer.removeClass(":cursored");
 			cellRenderer.parentComponent.removeClass(":line-selected");
 		}
 		this.x = x;
 		var cellRenderer = rendererForCursor();
-		if (cellRenderer != null){
+		if (cellRenderer != null) {
 			cellRenderer.addClass(":cursored");
-			if (cellRenderer.id == "cell_index") cellRenderer.parentComponent.addClass(":line-selected");
+			if (cellRenderer.id == "cell_index")
+				cellRenderer.parentComponent.addClass(":line-selected");
 		}
-			
+
 		return x;
 	}
 
 	private function set_y(y:Int) {
 		closeCell();
 		var cellRenderer = rendererForCursor();
-		if (cellRenderer != null){
+		if (cellRenderer != null) {
 			cellRenderer.removeClass(":cursored");
 			cellRenderer.parentComponent.removeClass(":line-selected");
 		}
 		this.y = y;
 		var cellRenderer = rendererForCursor();
-		if (cellRenderer != null){
+		if (cellRenderer != null) {
 			cellRenderer.addClass(":cursored");
-			if (cellRenderer.id == "cell_index") cellRenderer.parentComponent.addClass(":line-selected");
+			if (cellRenderer.id == "cell_index")
+				cellRenderer.parentComponent.addClass(":line-selected");
 		}
 		return y;
 	}
@@ -133,14 +135,12 @@ class Cursor {
 				if (xIndex == x)
 					return c;
 			}
-			
 		}
 		return null;
 		/*
-		var x = x-1;
-		if (x<0) return null;
-		return rendererForCursor();*/
-		
+			var x = x-1;
+			if (x<0) return null;
+			return rendererForCursor(); */
 	}
 
 	public function setToRenderer(r:FocusableItemRenderer) {
@@ -252,17 +252,17 @@ class SheetView extends VBox {
 		}
 		var comps = findComponentsUnderPoint(e.screenX, e.screenY);
 		for (c in comps) {
-
 			if ((c is TIndexCell)) {
-				//var compoundRenderer = cast(c.parentComponent, ItemRenderer).parentComponent;
-				//compoundRenderer.parentComponent.addClass(":line-selected");
+				// var compoundRenderer = cast(c.parentComponent, ItemRenderer).parentComponent;
+				// compoundRenderer.parentComponent.addClass(":line-selected");
 			}
 			if (c.findComponent(SeparatorLine) != null) {
 				cursor.setToRenderer(cast c);
 				cursor.x = 0;
 				if ((c.getComponentAt(0) is IClickableCell)) {
 					var cell = cast(c.getComponentAt(0), IClickableCell);
-					if (!cell.isOpen()) cell.clickCell();
+					if (!cell.isOpen())
+						cell.clickCell();
 				}
 				break;
 			}
@@ -277,32 +277,42 @@ class SheetView extends VBox {
 					break;
 				}
 
-
 				var x = cursor.x;
 				var y = cursor.y;
-				
-				
+
 				cursor.setToRenderer(cast c);
 				if (cursor.x == x && cursor.y == y) {
 					if ((c.getComponentAt(0) is IClickableCell)) {
 						var cell = cast(c.getComponentAt(0), IClickableCell);
-						if (!cell.isOpen()) cell.clickCell();
+						if (!cell.isOpen())
+							cell.clickCell();
 					}
 				}
 			}
-
 		}
 	}
 
 	public function refreshRenderers() {
 		trace(sheet.lines);
+
 		for (c in table.findComponents("tableview-contents", Component)) {
 			c.onRightClick = function(event) {
-				
-				var menu = new popups.LinePopup(this, 0);
-				menu.left = event.screenX;
-				menu.top = event.screenY;
-				menu.show();
+				var compos = findComponentsUnderPoint(event.screenX, event.screenY, ItemRenderer);
+				for (c in compos) {
+					if (c.id == null) { // it's the compound rendererr
+						var tindex = c.findComponent(TIndexCell, true);
+						if (tindex == null)
+							continue;
+						if (tindex.hidden)
+							continue;
+
+						var index = tindex.value;
+						var menu = new popups.LinePopup(this, index);
+						menu.left = event.screenX;
+						menu.top = event.screenY;
+						menu.show();
+					}
+				}
 			}
 		}
 
@@ -367,20 +377,20 @@ class SheetView extends VBox {
 			table.itemRenderer.removeAllComponents();
 
 		var button = new components.SeparatorLine();
-			button.id = "separator";
-			button.width=200;
-			button.hidden = true;
-			var itemRenderer = new FocusableItemRenderer();
-			itemRenderer.verticalAlign = "center";
-			itemRenderer.addComponent(button);
-			itemRenderer.hidden = true;
-			table.addComponent(itemRenderer);
+		button.id = "separator";
+		button.width = 200;
+		button.hidden = true;
+		var itemRenderer = new FocusableItemRenderer();
+		itemRenderer.verticalAlign = "center";
+		itemRenderer.addComponent(button);
+		itemRenderer.hidden = true;
+		table.addComponent(itemRenderer);
 
 		if (sheet.isLevel()) {
 			var button = new Button();
 			button.text = "Edit";
 			button.id = "edit_button";
-			
+
 			var itemRenderer = new FocusableItemRenderer();
 			itemRenderer.verticalAlign = "center";
 			itemRenderer.id = "cell";
@@ -401,15 +411,12 @@ class SheetView extends VBox {
 		itemRenderer.addComponent(label);
 		table.addComponent(itemRenderer);
 
-		trace(sheet.lines);
-
 		for (c in sheet.columns) {
 			trace(c);
 			addCdbColumn(c);
 		}
 
 		trace("eee");
-
 
 		Toolkit.callLater(function f() {
 			cursor.x = cursor.x;
@@ -439,8 +446,8 @@ class SheetView extends VBox {
 		}
 		table.dataSource = ArrayDataSource.fromArray(sheet.lines.copy());
 		var insertedNbr = 0;
-		for ( sep in sheet.separators) {
-			table.dataSource.insert(sep.index,{separator:sep});
+		for (sep in sheet.separators) {
+			table.dataSource.insert(sep.index, {separator: sep});
 			insertedNbr++;
 		}
 		trace(table.dataSource);
@@ -527,7 +534,7 @@ class SheetView extends VBox {
 			var obj = sheet.lines[y];
 			var out = {};
 			for (x in s.x1...s.x2 + 1) {
-				var c = sheet.columns[x-2];
+				var c = sheet.columns[x - 2];
 				var v = Reflect.field(obj, c.name);
 				if (v != null)
 					Reflect.setField(out, c.name, v);
@@ -597,13 +604,14 @@ class SheetView extends VBox {
 			cursor.select = null;
 		} else {
 			var s = cursor.getSelection();
-			if (s.x2 == null) s.x2 = s.x1;
-			if (s.y2 == null) s.y2 = s.y1;
+			s.x2 = s.x1;
+			s.y2 = s.y1;
 			for (y in s.y1...s.y2 + 1) {
 				var obj = sheet.lines[y];
 				for (x in s.x1...s.x2 + 1) {
-					var c = sheet.columns[x-2]; // TODO check if ndex is in table  // -2 for separator and indexNum
-					if (c == null ) continue;
+					var c = sheet.columns[x - 2]; // TODO check if ndex is in table  // -2 for separator and indexNum
+					if (c == null)
+						continue;
 					var def = Main.mainView.base.getDefault(c);
 					if (def == null)
 						Reflect.deleteField(obj, c.name);
@@ -615,16 +623,10 @@ class SheetView extends VBox {
 		refresh();
 		Main.mainView.save();
 	}
-
-	
-
-
-
 	/*
 
-	case 'Z'.code if( ctrlDown && pages.curPage < 0 ):
-		*/
-	
+		case 'Z'.code if( ctrlDown && pages.curPage < 0 ):
+	 */
 	//// ---------------------------------  SHORTCUTS --------------------------------------- ////
 	// 	@:bind(this, haxe.ui.events.KeyboardEvent.KEY_PRESS)
 	// 	@:bind(this, haxe.ui.events.KeyboardEvent.KEY_DOWN)

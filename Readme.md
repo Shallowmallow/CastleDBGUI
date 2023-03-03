@@ -23,7 +23,7 @@ So you have to do
 * [ ] search ???
 * [x] edit columns refresh
 * [ ] history half done
-* [ ] separators half done
+* [x] separators
 * [x] displays
 
 * [ ] custom types
@@ -31,7 +31,6 @@ So you have to do
 
 
 ## what I want to add
-* shortcuts for chosing flags
 * a .img manager
 * a wxwidgets version
 
@@ -54,8 +53,6 @@ BUG keyboards not working when getting out of dialog
 
 BUG adding column to a level
 BUG Resizing tables
-
-right click on right clicked line not on curosr
 
 ## PR
 

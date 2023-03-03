@@ -21,10 +21,15 @@ class LinePopup extends Menu {
 
         var sheet = sheetView.sheet;
 
-        var index = sheetView.cursor.y;
+        //var index = sheetView.cursor.y;
+        var separator = null;
 
-        //var sepIndex = Lambda.indexOf(sheet.separators, index);
-        //nsep.selected = sepIndex >= 0;
+        for (s in sheet.separators) {
+            if (s.index == index) {
+                separator = s;
+                nsep.selected = true;
+            }
+        }
 
         nins.onClick = function(e) {
             sheetView.insertLine(index);
@@ -52,6 +57,16 @@ class LinePopup extends Menu {
                 sheetView.sheet.separators.push(separator);
                 sheetView.refresh();
                 
+            }
+            else {
+                for (s in sheet.separators) {
+                    if (s.index == index) {
+                        separator = s;
+                    }
+                }
+                sheetView.sheet.separators.remove(separator);
+                sheetView.refresh();
+
             }
         }
 

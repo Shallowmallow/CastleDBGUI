@@ -64,10 +64,11 @@ class SeparatorLine extends InteractiveComponent implements IClickableCell {
 
     public function clickCell() {
 		label.hide();
-		textfield.text = label.text;
+		textfield.text = separator.title;
 		allowFocus = true; // Why ??? Needed to work
 		haxe.ui.Toolkit.callLater(function f() {
             textfield.show();
+            textfield.focus = false;
 			textfield.focus = true;
 		});
 	}
