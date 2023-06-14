@@ -20,8 +20,8 @@ class TColorCell extends ColorPickerPopup implements ICell implements  IClickabl
     }
 
     public function saveCell(lineIndex:Int) {
-        var sheet = findAncestor(SheetView).sheet;
-        Reflect.setField(sheet.lines[lineIndex], id, selectedItem);
+        var obj = findAncestor(SheetView).objectToSave(lineIndex);
+        Reflect.setField(obj, id, selectedItem);
     }
 
     public function clickCell() {

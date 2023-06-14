@@ -4,13 +4,14 @@
             <menuitem id="mnew" text="New" shortcutText="Ctrl+N" />
             <menuitem id="mopen" text="Open..." shortcutText="Ctrl+O" />
             <menuitem id="msave" text="Save As..." shortcutText="Shift+S" />
+            <menu id="mrecent" text="Recent Files" />
             <menuitem id="mclean" text="Clean Images" />
             <menuitem text="Enable Compression" shortcutText="Ctrl+A" />
             <menuitem id="mexit" text="Exit" shortcutText="Ctrl+Q" />
         </menu>
     </menubar>
     <box width="100%" height="100%">
-        <tabview id="tabs" width="100%" height="100%" />
+        <tabview id="tabs" width="100%" height="100%" closable="true" />
         <hbox horizontalAlign="right">
             <button id="new_sheet" text="New Sheet (ctrl+T)" allowFocus="false" />
             <button id="new_column" text="New Column (ctrl+E)" allowFocus="false" disabled="true" />

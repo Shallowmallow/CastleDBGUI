@@ -1,5 +1,7 @@
 package components;
 
+import sys.FileSystem;
+import openfl.display.BitmapData;
 import haxe.io.Bytes;
 import haxe.io.Path;
 import haxe.ui.core.InteractiveComponent;
@@ -20,15 +22,23 @@ import haxe.ui.core.ItemRenderer;
 class TImageCell extends InteractiveComponent implements ICell implements IClickableCell {
 	private var _isOpen = false;
 
+	public function new() {
+		super();
+		image.scaleMode = "fitinside";
+		image.height = 40;
+	}
+
 	// Enumeration 	the integer index of the selected value 	0 (first value)
 	public function clickCell() {
 		_isOpen = true;
 		haxe.ui.containers.dialogs.Dialogs.openFile(function(b, files) {
 			if (b == haxe.ui.containers.dialogs.Dialog.DialogButton.OK) {
+				image.value = files[0].fullPath;
 				validateCell();
 				haxe.ui.Toolkit.callLater(function() {
 					_isOpen = false;
 				});
+				//Main.mainView.save();
 			}
 		}, {
 			extensions: [{extension: "*"}],
@@ -56,14 +66,12 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 
 		var path:String = image.resource;
 		#if sys
-		var bytes = sys.io.File.getBytes(StringTools.replace(path, "file://", ""));
-		var md5 = haxe.crypto.Md5.make(bytes).toHex();
+		var md5 = ""; // haxe.crypto.Md5.make(bytes).toHex();
+		var data = "";
+		var obj = findAncestor(SheetView).objectToSave(lineIndex);
 
-		if (path == "") {
-			Reflect.deleteField(sheet.lines[lineIndex], id);
-		} else {
-			Reflect.setField(sheet.lines[lineIndex], id, md5);
-		}
+
+		
 		
 
 		var imageBank = Main.mainView.imageBank;
@@ -71,13 +79,33 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 		if (imageBank == null)
 			imageBank = {};
 		if (!Reflect.hasField(imageBank, md5)) {
-			var data = "data:image/"
+			if (Path.extension(path)=="svg") {
+				var svg = sys.io.File.getContent(StringTools.replace(path, "file://", ""));
+				md5 = haxe.crypto.Md5.encode(svg);
+				data = "data:image/"
+				+ Path.extension(path)
+				+ ";text,"
+				+ svg;
+				
+			}
+			else {
+				var bytes = sys.io.File.getBytes(StringTools.replace(path, "file://", ""));
+				md5 = haxe.crypto.Md5.make(bytes).toHex();
+				data = "data:image/"
 				+ Path.extension(path)
 				+ ";base64,"
 				+ new haxe.crypto.BaseCode(haxe.io.Bytes.ofString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")).encodeBytes(bytes)
 					.toString();
-			trace(data.substr(0, 40));
+				
+			}
+			
 			Reflect.setField(imageBank, md5, data);
+		}
+
+		if (path == "") {
+			Reflect.deleteField(obj, id);
+		} else {
+			Reflect.setField(obj, id, md5);
 		}
 
 		Main.mainView.imageBank = imageBank;
@@ -85,16 +113,56 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 		value = md5;
 
 		#end
+		Main.mainView.saveImages();
+		Main.mainView.save();
 	}
 
 	public override function set_value(value:Dynamic):Dynamic {
+		trace(value);
+		//trace(Main.mainView.imageBank );
         var imageData = Main.mainView.getImageData(value);
-		var extension = imageData.substring(11, imageData.indexOf(";"));
-		var base64 = imageData.substring(imageData.indexOf(";")+8);
+		trace(imageData);
+		if (imageData == null) {
+			if (FileSystem.exists(value)) {
+				image.resource =  "file://" + value;
+			return super.set_value(value);
+			}
+			
+		}
+		var iindex = imageData.indexOf(";");
+		trace(imageData);
+		var extension = imageData.substring(11, iindex);
+		var jindex = imageData.indexOf(",", iindex);
+		var type = imageData.substring(iindex+1, jindex );
+		var content = imageData.substring(jindex+1);
 		#if openfl
-		openfl.display.BitmapData.loadFromBase64(base64, extension).onComplete(function(bitmap) {
-			image.resource = bitmap;
-		});
+		trace(extension,type);
+		//percentHeight = 100;
+		height = 40;
+		switch ([extension, type]) {
+			case ["svg", "text"]:
+				trace(type);
+				trace(content);
+				var svg = new format.SVG(content);
+				trace(width, height,svg.data.width, svg.data.height);
+
+				haxe.ui.Toolkit.callLater(function f(){
+					trace(width, height,svg.data.width, svg.data.height);
+				
+				svg.render(getImageDisplay().sprite.graphics);
+				});
+				//image.resource = svg;
+
+			case [_, "base64"]:
+				openfl.display.BitmapData.loadFromBase64(content, extension).onComplete(function(bitmap) {
+					image.resource = bitmap;
+				});
+			default:
+
+
+		}
+		
+		
 		#elseif heaps
 		//haxe.crypto.Base64.decode(data);
 

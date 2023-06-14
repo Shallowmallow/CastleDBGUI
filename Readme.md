@@ -9,7 +9,7 @@ So you have to do
 ```openfl build linux```
 
 
-
+g
 
 ## What's left to do for adaptation
 
@@ -27,7 +27,8 @@ So you have to do
 * [x] displays
 
 * [ ] custom types
-* [ ] float/list/properties/dynamic/data layer/tile layer/tile pos
+* [ ] float
+* [ ] properties/dynamic/data layer/tile layer/tile pos
 
 
 ## what I want to add
@@ -53,6 +54,8 @@ BUG keyboards not working when getting out of dialog
 
 BUG adding column to a level
 BUG Resizing tables
+
+Changing a column type to list and clicking inside it
 
 ## PR
 

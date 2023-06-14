@@ -17,7 +17,7 @@ import haxe.ui.events.UIEvent;
     <numberstepper id="numberstepper" hidden="true" width="100%" verticalAlign="center"/>
 </interactivecomponent>
 ')
-class TIntCell extends InteractiveComponent implements ICell implements IClickableCell  {
+class TFloatCell extends InteractiveComponent implements ICell implements IClickableCell  {
 	public function new() {
 		super();
 		allowFocus = false;
@@ -25,7 +25,9 @@ class TIntCell extends InteractiveComponent implements ICell implements IClickab
 
 	public function saveCell(lineIndex:Int) {
 		var sheet = findAncestor(SheetView).sheet;
+
 		var obj = findAncestor(SheetView).objectToSave(lineIndex);
+
 
 		Reflect.setField(obj, id, value);
 	}
@@ -33,7 +35,7 @@ class TIntCell extends InteractiveComponent implements ICell implements IClickab
 	public function clickCell() {
 		numberstepper.show();
 		label.hide();
-		numberstepper.pos = Std.parseInt(label.text);
+		numberstepper.pos = Std.parseFloat(label.text);
 		allowFocus = true; // Why ??? Needed to work
 		haxe.ui.Toolkit.callLater(function f() {
 			numberstepper.focus = false;

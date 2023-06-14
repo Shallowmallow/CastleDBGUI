@@ -24,12 +24,13 @@ class TEnumCell extends DropDown  implements ICell implements IClickableCell {
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
 
-		trace(selectedIndex);
+		var obj = findAncestor(SheetView).objectToSave(lineIndex);
+
         if (selectedIndex < 0) {
-            Reflect.deleteField(sheet.lines[lineIndex], id);
+            Reflect.deleteField(obj, id);
         }
         else {
-            Reflect.setField(sheet.lines[lineIndex], id, selectedIndex);
+            Reflect.setField(obj, id, selectedIndex);
         }
 		SheetUtils.changed(sheet,col,lineIndex, selectedIndex);
     }

@@ -105,7 +105,6 @@ class Main {
 				sheetView.delete();
 			
 			case [false, 45, _]: // INS
-				var sheetView = mainView.shownSheetView();
 				sheetView.insertLine(sheetView.cursor.y);
 			case [false, 96|97|98|99|100|101|102|103, false]: // ESCAPE
 				if (ccell.isOpen() && ((ccell is components.TFlagsCell))) {

@@ -41,10 +41,12 @@ class TRefCell extends DropDown implements ICell implements IClickableCell {
 
 		var col = SheetUtils.getColumnForName(sheet, id);
 
+		var obj  = findAncestor(SheetView).objectToSave(lineIndex);
+
 		if (col.opt && value == "") {
-			Reflect.deleteField(sheet.lines[lineIndex], id);
+			Reflect.deleteField(obj, id);
 		} else {
-			Reflect.setField(sheet.lines[lineIndex], id, value);
+			Reflect.setField(obj, id, value);
 		}
 	}
 

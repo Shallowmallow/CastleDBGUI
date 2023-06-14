@@ -39,15 +39,16 @@ class TFlagsCell extends DropDown implements ICell implements IClickableCell {
     public function saveCell(lineIndex:Int) {
 
         var sheet = findAncestor(SheetView).sheet;
+        var obj = findAncestor(SheetView).objectToSave(lineIndex);
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
         
 
         if (col.opt && (bitValue == 0)) {
-            Reflect.deleteField(sheet.lines[lineIndex], id);
+            Reflect.deleteField(obj, id);
         }
         else {
-            Reflect.setField(sheet.lines[lineIndex], id, bitValue);
+            Reflect.setField(obj, id, bitValue);
         }
     }
 

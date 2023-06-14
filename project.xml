@@ -11,6 +11,7 @@
     <source path="src" />
 
     <haxelib name="openfl" />
+    <haxelib name="svg" />
     <haxelib name="actuate" />
 
     <haxelib name="haxeui-core" />

@@ -34,8 +34,9 @@ class TStringCell extends InteractiveComponent implements ICell implements IClic
 	public function saveCell(lineIndex:Int) {
 		var sheet = findAncestor(SheetView).sheet;
 
-		Reflect.setField(sheet.lines[lineIndex], id, value);
+		Reflect.setField(findAncestor(SheetView).objectToSave(lineIndex), id, value);
 		sheet.sync();
+		Main.mainView.save();
 	}
 
 	public function clickCell() {

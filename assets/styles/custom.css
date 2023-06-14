@@ -66,3 +66,14 @@
     opacity: .3;
 }
 
+.tab-close-button {
+    /*hidden: true;*/
+    resource: none; /* otherwise but in openfl, cannot always click on tab button*/
+}
+
+
+.closable .tab-close-button {
+   /* hidden: false;*/
+    resource: $close;
+}
+

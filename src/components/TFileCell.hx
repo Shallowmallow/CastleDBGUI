@@ -1,7 +1,6 @@
 package components;
 
 import haxe.ui.core.InteractiveComponent;
-import haxe.ui.containers.HBox;
 import haxe.ui.components.Label;
 import haxe.ui.events.UIEvent;
 
@@ -45,16 +44,17 @@ class TFileCell extends InteractiveComponent implements ICell implements IClicka
     }
 
 	public function saveCell(lineIndex:Int) {
-		trace("saveCell");
         var sheet = findAncestor(SheetView).sheet;
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
 
+		var obj = findAncestor(SheetView).objectToSave(lineIndex);
+
         if (col.opt && value == "") {
-            Reflect.deleteField(sheet.lines[lineIndex], id);
+            Reflect.deleteField(obj, id);
         }
         else {
-            Reflect.setField(sheet.lines[lineIndex], id, value);
+            Reflect.setField(obj, id, value);
         } 
 
     }
@@ -63,9 +63,7 @@ class TFileCell extends InteractiveComponent implements ICell implements IClicka
     }
 
 	public function validateCell(focusNext:Bool = true) {
-		//value = numberstepper.value;
 		dispatch(new UIEvent(UIEvent.CHANGE));
-        //label.show();
        
         var sheet = findAncestor(SheetView);
         haxe.ui.Toolkit.callLater(function f() {

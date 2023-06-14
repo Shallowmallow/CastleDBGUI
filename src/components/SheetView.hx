@@ -2,12 +2,8 @@ package components;
 
 import haxe.ui.Toolkit;
 import haxe.ui.containers.HBox;
-import haxe.ui.focus.FocusManager;
 import haxe.ui.data.ArrayDataSource;
-import haxe.ui.components.popups.ColorPickerPopup;
-import haxe.ui.components.NumberStepper;
 import haxe.ui.components.Button;
-import haxe.ui.data.DataSource;
 import haxe.ui.components.Label;
 import haxe.ui.core.ItemRenderer;
 import haxe.ui.core.Component;
@@ -191,6 +187,61 @@ class Cursor {
 	}
 }
 
+class SheetSimili  {
+
+	public var sheet:Sheet;
+
+	// In a sub sheet, the data is not recorded in the sub sheet itself, but in the original sheet, as an array;
+	public var subData:Array<Dynamic<String>>;
+
+	public function new(sheet:Sheet, ?subData:Array<Dynamic<String>>) {
+		this.sheet = sheet;
+		this.subData = subData;
+	}
+
+	public function recordValue() {
+
+	}
+
+	private inline function isSubSheet() {
+		return (subData != null);
+	}
+
+	private function objectToSave(lineIndex:Int, id:String):Dynamic {
+
+		if (isSubSheet()) {
+			return subData[lineIndex];
+		}
+		else {
+			return sheet.lines[lineIndex];
+		}
+	}
+
+/*
+	var sheet = findAncestor(SheetView).sheet;
+
+        var col  = SheetUtils.getColumnForName(sheet, id);  
+        var obj = findAncestor(SheetView).objectToSave(lineIndex);
+
+        trace("save", checkbox.selected);
+        trace(obj);
+
+        if (col.opt && !checkbox.selected) {
+            Reflect.deleteField(obj, id);
+        }
+        else {
+            Reflect.setField(obj, id, checkbox.selected);
+            trace("should change", id, "to", checkbox.selected) ;
+        }
+        trace(obj);*/
+
+}
+
+
+/**
+	The sheet view is the table view of a sheet or a subsheet.
+
+**/
 @xml('
 <vbox width="100%" height="100%">
 <button id="add_column" text="add a column"/>
@@ -202,19 +253,24 @@ class Cursor {
 ')
 class SheetView extends VBox {
 	public var sheet:Sheet;
+	
 	public var sheetName:String;
 	public var cursor:Cursor; // = new Cursor(this);
+
+
+	/* For lists etc ...*/
+	public var subVal:Array<Dynamic<String>> = null;
+	public var parentSheet:Sheet;
+	public var parentId:Int;
+
+
 
 	public function new() {
 		super();
 		cursor = new Cursor(this);
-
-		// cursor.x = 0;
-		// cursor.y = 0;
 		cursor.sheetView = this;
 		table.selectionMode = "disabled";
 		table.allowFocus = false;
-		// FocusManager.instance.enabled = false;
 	}
 
 	@:bind(add_column, MouseEvent.CLICK)
@@ -231,6 +287,43 @@ class SheetView extends VBox {
 		var itemCell = cast(e.sourceEvent.target, components.ICell);
 		itemCell.saveCell(e.itemIndex);
 	}
+
+	public function objectToSave(lineIndex:Int):Dynamic {
+		var isSub = StringTools.contains(sheet.name, "@");
+		trace(isSub);
+		if (isSub) {
+			return subVal[lineIndex];
+		}
+		else {
+			trace(sheet.lines);
+			trace(lineIndex);
+			trace(sheet.lines[lineIndex]);
+			var o = sheet.lines[lineIndex];
+			trace(o);
+			return sheet.lines[lineIndex];
+		}
+		//if (
+	}
+
+
+	public function saveField(lineIndex, id, value):Void {
+		var obj = objectToSave(lineIndex);
+		Reflect.setField(obj, id, value);
+		if (subVal != null) {
+			parentSheet.lines[parentId] =  "" +obj;
+			// Should reload original sheet
+		}
+	}
+
+	public function deleteField(lineIndex, id, value):Void {
+		var obj = objectToSave(lineIndex);
+		Reflect.deleteField(obj, id);
+		if (subVal != null) {
+			parentSheet.lines[parentId] =  "" +obj;
+			// Should reload original sheet
+		}
+	}
+
 
 	// For some reason don't well in openfl where you need a background color
 
@@ -294,6 +387,7 @@ class SheetView extends VBox {
 
 	public function refreshRenderers() {
 		trace(sheet.lines);
+		trace("subval " +subVal);
 
 		for (c in table.findComponents("tableview-contents", Component)) {
 			c.onRightClick = function(event) {
@@ -318,6 +412,7 @@ class SheetView extends VBox {
 
 		table.dataSource.clear();
 		trace(sheet.lines);
+		trace("subval " +subVal);
 
 		if (sheet.columns.length > 5) {
 			table.percentContentWidth = null;
@@ -433,18 +528,27 @@ class SheetView extends VBox {
 	}
 
 	public function refresh() {
+		trace("subval " +subVal);
 		refreshRenderers();
+		trace("subval " +subVal);
 		refreshData();
 	}
 
 	public function refreshData() {
 		var i = 0;
+
+		trace("subval " +subVal);
+
+		var lines = subVal == null ? sheet.lines.copy(): subVal;
+
+		trace(lines);
 		// Adding an index
-		for (line in sheet.lines) {
+		for (line in lines) {
 			Reflect.setField(line, "num_index", i);
 			i++;
 		}
-		table.dataSource = ArrayDataSource.fromArray(sheet.lines.copy());
+
+		table.dataSource = ArrayDataSource.fromArray(lines.copy());
 		var insertedNbr = 0;
 		for (sep in sheet.separators) {
 			table.dataSource.insert(sep.index, {separator: sep});
@@ -455,7 +559,15 @@ class SheetView extends VBox {
 	}
 
 	public function addLine(e) {
-		sheet.newLine();
+		
+		if (subVal== null){
+			trace("subval adding line");
+			sheet.newLine();
+		}
+		else {
+			trace("sheet adding line");
+			subVal.push({});
+		}
 		refresh();
 		Main.mainView.save();
 	}
@@ -470,9 +582,9 @@ class SheetView extends VBox {
 				new TBoolCell();
 			case TInt:
 				new TIntCell();
-			// new TextField();//;
 			case TFloat:
-				new NumberStepper();
+				new TFloatCell();
+				//new NumberStepper();
 			// new TextField();//.restrictChars="0-9,.";
 			case TEnum(values):
 				var dropDown = new TEnumCell();
@@ -494,6 +606,9 @@ class SheetView extends VBox {
 				tRef;
 			case TTilePos:
 				new TTileCell();
+			case TList:
+				//new Label();
+				new TListCell();
 			case _:
 				new Label();
 		}
@@ -517,7 +632,14 @@ class SheetView extends VBox {
 	}
 
 	public function insertLine(index:Int) {
-		sheet.newLine(index);
+		if (subVal== null) {
+			sheet.newLine(index);
+			trace("shhet", sheet.lines);
+		}
+		else {
+			subVal.insert(index,{});
+			trace("subVal", subVal);
+		}
 		refresh();
 		Main.mainView.save();
 	}

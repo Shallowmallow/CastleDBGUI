@@ -1,9 +1,19 @@
 package;
 
+import haxe.ui.Toolkit;
+import haxe.ui.core.InteractiveComponent;
+import components.TImageCell;
+import haxe.ui.containers.menus.MenuItem;
+import haxe.ui.HaxeUIApp;
+#if sys
+import sys.io.File;
+import sys.FileSystem;
+#end
 import components.SheetView;
 import haxe.io.Path;
 import haxe.ui.core.Screen;
 import haxe.ui.events.UIEvent;
+import haxe.ui.events.AppEvent;
 import dialogs.CreateSheetDialog;
 import dialogs.CreateColumnDialog;
 import haxe.ui.containers.VBox;
@@ -24,18 +34,30 @@ typedef HistoryElement = {d:String, o:String};
 
 @:build(haxe.ui.ComponentBuilder.build("assets/main-view.xml"))
 class MainView extends VBox {
-
-	public var clipboard : {
-		text : String,
-		data : Array<Dynamic>,
-		schema : Array<Column>,
+	public var clipboard:{
+		text:String,
+		data:Array<Dynamic>,
+		schema:Array<Column>,
 	};
+
+	@:bind(menubar, MenuEvent.MENU_OPENED)
+	private function addRecent(e) {
+		mrecent.removeAllComponents();
+		for (r in prefs.recent) {
+			var menuItem = new MenuItem();
+			menuItem.text = "" + r;
+			menuItem.addClass("recent_file");
+			mrecent.addComponent(menuItem);
+		}
+	}
 
 	@:bind(menubar, MenuEvent.MENU_SELECTED)
 	private function onSelectMenu(e:MenuEvent) {
 		switch (e.menuItem.id) {
 			case "mexit":
 				#if sys Sys.exit(0); #end
+			case "mclean":
+				cleanImages();
 			case "mopen":
 				haxe.ui.containers.dialogs.Dialogs.openFile(function(b, files) {
 					if (b == haxe.ui.containers.dialogs.Dialog.DialogButton.OK) {
@@ -51,11 +73,13 @@ class MainView extends VBox {
 					var sdata = quickSave();
 					haxe.ui.containers.dialogs.Dialogs.saveFile(function(but, saveResult, path) {
 						if (but == haxe.ui.containers.dialogs.Dialog.DialogButton.OK) {
-						prefs.curFile = path;
-						saveWithHistory(sdata);
+							prefs.curFile = path;
+							saveWithHistory(sdata);
 						}
 					}, {
-						#if sys name: Sys.getEnv("HOME"), #end
+						#if sys
+						name: Sys.getEnv("HOME"),
+						#end
 						text: sdata.d
 					}, {
 						extensions: [{extension: ".cdb"}],
@@ -66,22 +90,13 @@ class MainView extends VBox {
 				} catch (e) {
 					trace(e);
 				}
-
-				//   public static function saveFile(callback:DialogButton->Bool->String->Void, fileInfo:FileInfo, options:SaveFileDialogOptions = null) {
+		}
+		if (e.menuItem.hasClass("recent_file")) {
+			prefs.curFile = e.menuItem.text;
+			load();
 		}
 	}
 
-	/*
-		msave.click = function() {
-			var i = J("<input>").attr("type", "file").attr("nwsaveas","new.cdb").css("display","none").change(function(e) {
-				var j = JTHIS;
-				prefs.curFile = j.val();
-				save();
-				j.remove();
-			});
-			i.appendTo(J("body"));
-			i.click();
-	};*/
 	public var base:cdb.Database = new cdb.Database();
 
 	public var prefs:Prefs;
@@ -122,10 +137,48 @@ class MainView extends VBox {
 			if (Path.extension(path) == "cdb") {
 				prefs.curFile = path;
 				load();
+				return;
 			}
+
+			// TODO ideally should have some special hover effects
+			// But in lime there isn"t a dropfile window ghas entered event yet
+
+			trace(screen.currentMouseX, screen.currentMouseY);
+
+			//  needs a callLater or the currentMouseX won't be updated
+			Toolkit.callLater(function () {
+			var components = findComponentsUnderPoint(screen.currentMouseX, screen.currentMouseY);
+			trace(components);
+			for ( c in components) {
+				if ( c is FocusableItemRenderer) {
+					var image = c.findComponents(TImageCell)[0];
+					if (image != null) {
+						// needs to check if file I think it should be haxeui doing it
+						image.image.resource = path;
+						image.validateCell();
+						Main.mainView.save();
+					}
+				}
+			} });
+
+
 		});
 		#end
-		//load(true); why ??
+
+		HaxeUIApp.instance.registerEvent(AppEvent.APP_EXITED, function f(e) {
+			savePrefs();
+		});
+	}
+
+	@:bind(this, MouseEvent.MOUSE_MOVE)
+	private function mouseMove(e:MouseEvent) {
+//		trace(e.screenY);
+//		trace(screen.currentMouseY);
+	}
+
+	@:bind(this, UIEvent.READY)
+	private function firstLoad(e) {
+		load(true);
 	}
 
 	@:bind(new_sheet, MouseEvent.CLICK)
@@ -219,14 +272,13 @@ class MainView extends VBox {
 				this.history.shift();
 			curSavedData = sdata;
 		}
-
-
 	}
 
 	public function save(history = true) {
 		var sdata = quickSave();
-		if (history) saveWithHistory(sdata);
-		
+		if (history)
+			saveWithHistory(sdata);
+
 		if (prefs.curFile == null)
 			return;
 		#if sys
@@ -258,7 +310,9 @@ class MainView extends VBox {
 			return;
 		var img = prefs.curFile.split(".");
 		img.pop();
+		trace(img);
 		var path = img.join(".") + ".img";
+		trace(path);
 		#if sys
 		if (imageBank == null)
 			sys.FileSystem.deleteFile(path);
@@ -288,6 +342,33 @@ class MainView extends VBox {
 	}
 
 	function load(noError = false) {
+		if (sys.FileSystem.exists(prefs.curFile + ".mine") && !Resolver.resolveConflict(prefs.curFile)) {
+			error("CDB file has unresolved conflict, merge by hand before reloading.");
+			return;
+		}
+
+		lastSave = getFileTime();
+		loadi(noError);
+
+		// initContent();
+		loadSheets();
+		prefs.recent.remove(prefs.curFile);
+		if (prefs.curFile != null)
+			prefs.recent.unshift(prefs.curFile);
+		if (prefs.recent.length > 8)
+			prefs.recent.pop();
+
+		/* TODO
+			mcompress.checked = base.compress;mcompress = new MenuItem( { label : "Enable Compression", type : MenuItemType.checkbox } );
+			mcompress.click = function() {
+				base.compress = mcompress.checked;
+				save();
+			};
+
+		 */
+	}
+
+	function loadi(noError = false) {
 		history = [];
 		redo = [];
 		base = new cdb.Database();
@@ -296,9 +377,12 @@ class MainView extends VBox {
 			base.load(sys.io.File.getContent(prefs.curFile));
 			if (prefs.curSheet > base.sheets.length)
 				prefs.curSheet = 0;
-			else
-				while (base.sheets[prefs.curSheet].props.hide)
+			else {
+				trace(prefs.curSheet, base.sheets.length);
+				while (base.sheets[prefs.curSheet] != null && base.sheets[prefs.curSheet].props.hide) {
 					prefs.curSheet--;
+				}
+			}
 		} catch (e:Dynamic) {
 			if (!noError)
 				error(Std.string(e));
@@ -315,8 +399,6 @@ class MainView extends VBox {
 		}
 		curSavedData = quickSave();
 		#end
-
-		loadSheets();
 	}
 
 	function loadSheets() {
@@ -324,8 +406,13 @@ class MainView extends VBox {
 		for (sheet in base.sheets) {
 			if (sheet.props.hide)
 				continue;
+			trace(sheet);
 			var sheetView = createSheetView(sheet);
-			sheetView.refresh();
+			sheetView.registerEvent(UIEvent.READY, function(e) { // Or it will bug incase there is already some data in the sheet
+				sheetView.refresh();
+			});
+			// sheetView.refresh();
+			sheetView.addClass("non-closable");
 
 			Main.mainView.tabs.addComponent(sheetView);
 		}
@@ -386,12 +473,21 @@ class MainView extends VBox {
 					default:
 				}
 			}
+		trace(used);
 		for (f in Reflect.fields(imageBank))
 			if (!used.get(f))
 				Reflect.deleteField(imageBank, f);
+		saveImages();
 	}
 
 	function loadPrefs() {
+		#if (sys && linux)
+		try {
+			prefs = haxe.Unserializer.run(File.getContent(Sys.getEnv("HOME") + "/.config/castledb/prefs"));
+			if (prefs.recent == null)
+				prefs.recent = [];
+		} catch (e:Dynamic) {}
+		#end
 		#if js
 		try {
 			// prefs = haxe.Unserializer.run(js.Browser.getLocalStorage().getItem("prefs"));
@@ -402,7 +498,20 @@ class MainView extends VBox {
 	}
 
 	function savePrefs() {
+		#if (sys && linux)
+		if (!FileSystem.exists(Sys.getEnv("HOME") + "/.config")) {
+			FileSystem.createDirectory(Sys.getEnv("HOME") + "/.config");
+		}
+		if (!FileSystem.exists(Sys.getEnv("HOME") + "/.config/castledb")) {
+			FileSystem.createDirectory(Sys.getEnv("HOME") + "/.config/castledb");
+		}
+
+		// TODO, should have a normal ini file I think
+		File.saveContent(Sys.getEnv("HOME") + "/.config/castledb/prefs", haxe.Serializer.run(prefs));
+		#end
+		#if js
 		// js.Browser.getLocalStorage().setItem("prefs", haxe.Serializer.run(prefs));
+		#end
 	}
 
 	function checkTime() {
@@ -424,26 +533,24 @@ class MainView extends VBox {
 		#end
 	}
 
-	public function setClipBoard( schema : Array<cdb.Data.Column>, data : Array<Dynamic> ) {
+	public function setClipBoard(schema:Array<cdb.Data.Column>, data:Array<Dynamic>) {
 		clipboard = {
-			text : Std.string([for( o in data ) shownSheetView().sheet.objToString(o,true)]),
-			data : data,
-			schema : schema,
+			text: Std.string([for (o in data) shownSheetView().sheet.objToString(o, true)]),
+			data: data,
+			schema: schema,
 		};
 		#if node
 		js.node.webkit.Clipboard.getInstance().set(clipboard.text, "text");
-		#elseif openfl 
+		#elseif openfl
 		openfl.desktop.Clipboard.generalClipboard.setData(openfl.desktop.ClipboardFormats.TEXT_FORMAT, clipboard.text);
 		#end
 	}
 
-
-
 	public function undo() {
 		trace(history.length);
-		if( history.length > 0 ) {
-			for ( i in 0...tabs.pageCount) {
-				var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+		if (history.length > 0) {
+			for (i in 0...tabs.pageCount) {
+				var sheetView:SheetView = cast(tabs.getPage(i), SheetView);
 				sheetView.sheetName = sheetView.sheet.name;
 			}
 			redo.push(curSavedData);
@@ -455,9 +562,9 @@ class MainView extends VBox {
 	}
 
 	public function redoFunc() {
-		if( redo.length > 0 ) {
-			for ( i in 0...tabs.pageCount) {
-				var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+		if (redo.length > 0) {
+			for (i in 0...tabs.pageCount) {
+				var sheetView:SheetView = cast(tabs.getPage(i), SheetView);
 				sheetView.sheetName = sheetView.sheet.name;
 			}
 			history.push(curSavedData);
@@ -469,8 +576,8 @@ class MainView extends VBox {
 	}
 
 	function refreshSheets() {
-		for ( i in 0...tabs.pageCount) {
-			var sheetView:SheetView = cast (tabs.getPage(i),SheetView );
+		for (i in 0...tabs.pageCount) {
+			var sheetView:SheetView = cast(tabs.getPage(i), SheetView);
 			var sheet = base.getSheet(sheetView.sheetName);
 			sheetView.sheet = sheet;
 			sheetView.refresh();
