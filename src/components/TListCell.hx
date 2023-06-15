@@ -30,21 +30,26 @@ class TListCell extends InteractiveComponent  implements ICell implements IClick
 
 
 		var sheetView = new components.SheetView();
-		trace(sheet.name);
 		sheetView.text = sheet.name; //"subsheet";
 		sheetView.sheet = sheet;
 		sheetView.id = sheet.name;
 		sheetView.subVal =  subVal;
 
 		sheetView.parentSheet = sheetMain;
-//		sheetView.parentId    = id;
-                    
+		sheetView.parentId    = id;
+		var index = cast(parentComponent.parentComponent, haxe.ui.core.ItemRenderer).itemIndex ;
+		sheetView.parentLine  = index;
+
+		Main.mainView.sideview.show();
+		Main.mainView.sideview.addComponent(sheetView);
+
+        /*
 		Main.mainView.tabs.addComponent(sheetView);
 		Main.mainView.tabs.selectedPage = sheetView;
 		var b =  Main.mainView.tabs.findComponent(sheetView.id+ "_button", Button);
 		//Main.mainView.tabs.findComponents(Button,1).pop(); 
 		trace(b.classes);
-		b.addClass("closable");
+		b.addClass("closable");*/
 
 		sheetView.registerEvent(UIEvent.READY, function(e) {  // Or it will bug incase there is already some data in the sheet
 			sheetView.refresh();
@@ -87,6 +92,8 @@ class TListCell extends InteractiveComponent  implements ICell implements IClick
     }
 
     public function closeCell() {
+		Main.mainView.sideview.hide();
+		Main.mainView.sideview.removeAllComponents();
     }
 
 	public function validateCell(focusNext:Bool = true) {

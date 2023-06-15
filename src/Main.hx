@@ -49,6 +49,12 @@ class Main {
 		
 		
 		var sheetView = mainView.shownSheetView();
+		if (!mainView.sideview.hidden) {
+			// if sideview has a sheet/list opened
+			if (mainView.sideview.findComponents(components.SheetView).length > 0) {
+				sheetView = mainView.sideview.findComponents(components.SheetView)[0];
+			}
+		}
 		if (sheetView == null)
 			return;
 		var r = sheetView.cursor.rendererForCursor();
@@ -86,7 +92,6 @@ class Main {
 
 
 		if (isKeyPressedContinuously) return;
-
 		switch ([e.ctrlKey, e.keyCode, ccell == null]) {
 			case [true, 84, _]: // T
 				mainView.newSheet(e);
@@ -106,13 +111,19 @@ class Main {
 			
 			case [false, 45, _]: // INS
 				sheetView.insertLine(sheetView.cursor.y);
-			case [false, 96|97|98|99|100|101|102|103, false]: // ESCAPE
+			case [false, 96|97|98|99|100|101|102|103, false]: // numbers
 				if (ccell.isOpen() && ((ccell is components.TFlagsCell))) {
 					var flags = cast (ccell, components.TFlagsCell);
 					flags.pressKeyCode(e.keyCode);
 				}
-			case [false, 27, false]: // ESCAPE
-				if (ccell.isOpen()) {
+			case [false, 27,  _]:
+				if (!mainView.sideview.hidden) {
+					if ((ccell == null) || !ccell.isOpen()) {
+						mainView.sideview.hide();
+						Main.mainView.sideview.removeAllComponents();
+					}	
+				}
+				else if (ccell !=  null && ccell.isOpen()) {
 					ccell.closeCell();
 				}
 			case [false, 32, false]: // Space

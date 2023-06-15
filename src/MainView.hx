@@ -54,6 +54,9 @@ class MainView extends VBox {
 	@:bind(menubar, MenuEvent.MENU_SELECTED)
 	private function onSelectMenu(e:MenuEvent) {
 		switch (e.menuItem.id) {
+			case "mnew":
+				prefs.curFile = null;
+				load(true);
 			case "mexit":
 				#if sys Sys.exit(0); #end
 			case "mclean":
@@ -196,6 +199,15 @@ class MainView extends VBox {
 
 	@:bind(new_line, MouseEvent.CLICK)
 	private function newLine(e) {
+		// check if sideview with list
+		if (!sideview.hidden) {
+			// if sideview has a sheet/list opened
+			if (sideview.findComponents(components.SheetView).length > 0) {
+				sideview.findComponents(components.SheetView)[0].addLine(e);
+				return;
+			}
+
+		}
 		var sheetView = cast(tabs.selectedPage, components.SheetView);
 		sheetView.addLine(e);
 	}
@@ -290,7 +302,6 @@ class MainView extends VBox {
 			sys.io.File.saveContent(tmpFile, "LOCKED by CDB")
 		catch (e:Dynamic) {};
 		try {
-			trace(sdata.d);
 			sys.io.File.saveContent(prefs.curFile, sdata.d);
 		} catch (e:Dynamic) {
 			// retry once after EBUSY
@@ -342,10 +353,12 @@ class MainView extends VBox {
 	}
 
 	function load(noError = false) {
+		#if sys
 		if (sys.FileSystem.exists(prefs.curFile + ".mine") && !Resolver.resolveConflict(prefs.curFile)) {
 			error("CDB file has unresolved conflict, merge by hand before reloading.");
 			return;
 		}
+		#end
 
 		lastSave = getFileTime();
 		loadi(noError);

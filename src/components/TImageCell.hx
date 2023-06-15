@@ -1,7 +1,11 @@
 package components;
 
+#if sys
 import sys.FileSystem;
+#end
+#if openfl
 import openfl.display.BitmapData;
+#end
 import haxe.io.Bytes;
 import haxe.io.Path;
 import haxe.ui.core.InteractiveComponent;
@@ -121,12 +125,14 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 		trace(value);
 		//trace(Main.mainView.imageBank );
         var imageData = Main.mainView.getImageData(value);
-		trace(imageData);
 		if (imageData == null) {
+			#if sys
 			if (FileSystem.exists(value)) {
 				image.resource =  "file://" + value;
 			return super.set_value(value);
 			}
+			#end
+			return super.set_value(value);
 			
 		}
 		var iindex = imageData.indexOf(";");

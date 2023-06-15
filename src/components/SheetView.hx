@@ -260,8 +260,10 @@ class SheetView extends VBox {
 
 	/* For lists etc ...*/
 	public var subVal:Array<Dynamic<String>> = null;
+
 	public var parentSheet:Sheet;
-	public var parentId:Int;
+	public var parentId:String;
+	public var parentLine:Int;
 
 
 
@@ -310,7 +312,7 @@ class SheetView extends VBox {
 		var obj = objectToSave(lineIndex);
 		Reflect.setField(obj, id, value);
 		if (subVal != null) {
-			parentSheet.lines[parentId] =  "" +obj;
+			parentSheet.lines[parentLine] =  "" +obj;
 			// Should reload original sheet
 		}
 	}
@@ -319,7 +321,7 @@ class SheetView extends VBox {
 		var obj = objectToSave(lineIndex);
 		Reflect.deleteField(obj, id);
 		if (subVal != null) {
-			parentSheet.lines[parentId] =  "" +obj;
+			parentSheet.lines[parentLine] =  "" +obj;
 			// Should reload original sheet
 		}
 	}
@@ -511,8 +513,6 @@ class SheetView extends VBox {
 			addCdbColumn(c);
 		}
 
-		trace("eee");
-
 		Toolkit.callLater(function f() {
 			cursor.x = cursor.x;
 			cursor.y = cursor.y;
@@ -567,6 +567,7 @@ class SheetView extends VBox {
 		else {
 			trace("sheet adding line");
 			subVal.push({});
+			Reflect.setField(parentSheet.lines[parentLine], parentId, subVal);
 		}
 		refresh();
 		Main.mainView.save();
