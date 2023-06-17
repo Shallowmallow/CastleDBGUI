@@ -1,5 +1,6 @@
 package components;
 
+import haxe.ui.events.UIEvent;
 import haxe.ui.Toolkit;
 import haxe.ui.containers.HBox;
 import haxe.ui.data.ArrayDataSource;
@@ -281,30 +282,35 @@ class SheetView extends VBox {
 		dia.show();
 	}
 
+
+
+	/**
+		I don't know and I was going though this instead of directly saving the cell after changing tge value
+		I'm sure there was a reason, maybe to access easily itemIndex 
+		Is the reason still valable ?
+
+	**/
 	@:bind(table, haxe.ui.events.ItemEvent.COMPONENT_CHANGE_EVENT)
 	private function changeCell(e:haxe.ui.events.ItemEvent) {
-		trace("table change llalalala");
+		trace("table change llalalala", Main.mainView.isLoading);
+		if (Main.mainView.isLoading) {
+			return;
+		}
 		if (!(e.sourceEvent.target is components.ICell))
 			return;
 		var itemCell = cast(e.sourceEvent.target, components.ICell);
-		itemCell.saveCell(e.itemIndex);
+		itemCell.saveCell(e.itemIndex, cast(e.sourceEvent, UIEvent).previousValue);
 	}
 
 	public function objectToSave(lineIndex:Int):Dynamic {
 		var isSub = StringTools.contains(sheet.name, "@");
-		trace(isSub);
 		if (isSub) {
 			return subVal[lineIndex];
 		}
 		else {
-			trace(sheet.lines);
-			trace(lineIndex);
-			trace(sheet.lines[lineIndex]);
 			var o = sheet.lines[lineIndex];
-			trace(o);
 			return sheet.lines[lineIndex];
 		}
-		//if (
 	}
 
 

@@ -36,12 +36,17 @@ class TTileCell extends InteractiveComponent implements ICell implements IClicka
 		});
 	}
 
-    public function saveCell(lineIndex:Int) {
+    public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 		var sheet = findAncestor(SheetView).sheet;
 
 		var col = SheetUtils.getColumnForName(sheet, id);
 
 		var path:String = image.resource;
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
         /*
 		#if sys
 		var bytes = sys.io.File.getBytes(StringTools.replace(path, "file://", ""));

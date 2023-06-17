@@ -23,13 +23,18 @@ class TFloatCell extends InteractiveComponent implements ICell implements IClick
 		allowFocus = false;
 	}
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 		var sheet = findAncestor(SheetView).sheet;
 
 		var obj = findAncestor(SheetView).objectToSave(lineIndex);
 
 
 		Reflect.setField(obj, id, value);
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
 	}
 
 	public function clickCell() {

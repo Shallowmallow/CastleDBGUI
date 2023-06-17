@@ -28,9 +28,28 @@ typedef Prefs = {
 	curFile:String,
 	curSheet:Int,
 	recent:Array<String>,
+	autosave:Bool
 }
 
-typedef HistoryElement = {d:String, o:String};
+typedef HistoryElement = {
+	d:String,    // seems to be the whole data of the file , which is easier 
+	o:String,    // was supposed to be opened list which doesn't exxist anymore, but yeah there should be interface history
+};
+
+enum HistoryElement2 {
+	ChangedField(sheet : Sheet, c : String, index : Int, old : Dynamic, newV : Dynamic); // column name c
+	DeletedField(sheet : Sheet, c : String, index : Int, old : Dynamic);
+	// undoRedo ??? Actions interfaced history ? AddedColumn Added Line  EditedColumn
+}
+/*
+enum HistoryElement2 {
+	Field( obj : Dynamic, field : String, oldValue : Dynamic );
+	Array( obj : Array<Dynamic>, field : Int, oldValue : Dynamic );
+	Custom( undoRedo : Bool -> Void );
+}*/
+
+
+
 
 @:build(haxe.ui.ComponentBuilder.build("assets/main-view.xml"))
 class MainView extends VBox {
@@ -59,6 +78,10 @@ class MainView extends VBox {
 				load(true);
 			case "mexit":
 				#if sys Sys.exit(0); #end
+			case "mautosave":
+				prefs.autosave = mautosave.selected;
+			case "mhistory":
+				historyBox.hidden = !mhistory.selected;
 			case "mclean":
 				cleanImages();
 			case "mopen":
@@ -112,6 +135,8 @@ class MainView extends VBox {
 	public var history:Array<HistoryElement> = [];
 	public var redo:Array<HistoryElement> = [];
 
+	public var history2:Array<HistoryElement2> = [];
+
 	var lastSave:Float;
 
 	public function new() {
@@ -128,6 +153,7 @@ class MainView extends VBox {
 			curFile: null,
 			curSheet: 0,
 			recent: [],
+			autosave: false,
 		};
 		existsCache = new Map();
 		loadPrefs();
@@ -286,7 +312,7 @@ class MainView extends VBox {
 		}
 	}
 
-	public function save(history = true) {
+	public function doSave(history = true) {
 		var sdata = quickSave();
 		if (history)
 			saveWithHistory(sdata);
@@ -314,6 +340,15 @@ class MainView extends VBox {
 		catch (e:Dynamic) {};
 		#end
 		lastSave = getFileTime();
+
+	}
+
+	public function save(history = true) {
+		if (!prefs.autosave) {
+			return;
+		}
+		doSave();
+		
 	}
 
 	public function saveImages() {
@@ -352,7 +387,10 @@ class MainView extends VBox {
 		#if js js.Browser.alert(msg); #end
 	}
 
+	public var isLoading:Bool = false;
+
 	function load(noError = false) {
+		isLoading = true;
 		#if sys
 		if (sys.FileSystem.exists(prefs.curFile + ".mine") && !Resolver.resolveConflict(prefs.curFile)) {
 			error("CDB file has unresolved conflict, merge by hand before reloading.");
@@ -370,6 +408,12 @@ class MainView extends VBox {
 			prefs.recent.unshift(prefs.curFile);
 		if (prefs.recent.length > 8)
 			prefs.recent.pop();
+
+		haxe.ui.util.Timer.delay(function f() {
+			trace("LOADINGNOMORE");
+			isLoading = false;
+		}, 1000);
+		
 
 		/* TODO
 			mcompress.checked = base.compress;mcompress = new MenuItem( { label : "Enable Compression", type : MenuItemType.checkbox } );

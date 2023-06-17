@@ -1,3 +1,4 @@
+import MainView.HistoryElement2;
 import cdb.Sheet;
 import cdb.Data.Column;
 import cdb.Data.ColumnType;
@@ -98,6 +99,7 @@ class SheetUtils {
 			sheet.updateValue(c, index, old);
 		}
 		Main.mainView.save();
+		//return MainView.HistoryElement2.ChangedField{sheet:sheet, c: c, index:index, old:old}
 	}
 
 

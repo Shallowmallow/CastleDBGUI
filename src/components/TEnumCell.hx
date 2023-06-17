@@ -19,7 +19,7 @@ class TEnumCell extends DropDown  implements ICell implements IClickableCell {
 		allowFocus = false;
 	}
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
         var sheet = findAncestor(SheetView).sheet;
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
@@ -33,6 +33,11 @@ class TEnumCell extends DropDown  implements ICell implements IClickableCell {
             Reflect.setField(obj, id, selectedIndex);
         }
 		SheetUtils.changed(sheet,col,lineIndex, selectedIndex);
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
     }
 
 	public override function set_value(value:Dynamic):Dynamic {

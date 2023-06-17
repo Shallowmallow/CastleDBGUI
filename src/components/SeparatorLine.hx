@@ -34,13 +34,10 @@ class SeparatorLine extends InteractiveComponent implements IClickableCell {
         label.text = separator.title;
 
         if (separator.title == null) label.text= "no title";
-        trace(label.text);
 
         var render = findAncestor(ItemRenderer).parentComponent;
         for (c in render.childComponents ) {
-            trace(c.id);
             if (c.findComponent(SeparatorLine) == null) {
-                trace(c.childComponents[0].id);
                 c.hide();
                 c.childComponents[0].hide();
 

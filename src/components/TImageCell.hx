@@ -63,7 +63,7 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 		});
 	}
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 		var sheet = findAncestor(SheetView).sheet;
 
 		var col = SheetUtils.getColumnForName(sheet, id);
@@ -104,6 +104,11 @@ class TImageCell extends InteractiveComponent implements ICell implements IClick
 			}
 			
 			Reflect.setField(imageBank, md5, data);
+
+			var col  = SheetUtils.getColumnForName(sheet, id);  
+			sheet.updateValue(col, lineIndex, previousValue);
+			Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+			Main.mainView.historyBox.updateHistory();
 		}
 
 		if (path == "") {

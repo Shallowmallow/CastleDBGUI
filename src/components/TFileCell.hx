@@ -23,7 +23,6 @@ class TFileCell extends InteractiveComponent implements ICell implements IClicka
     }
 
     public override function set_value(value:Dynamic):Dynamic {
-		trace(value);
         label.text = value;
 		if ((value == "") || (value == null)) label.text = "no file";
         return super.set_value(value);
@@ -43,7 +42,7 @@ class TFileCell extends InteractiveComponent implements ICell implements IClicka
 		});
     }
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
         var sheet = findAncestor(SheetView).sheet;
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
@@ -55,7 +54,12 @@ class TFileCell extends InteractiveComponent implements ICell implements IClicka
         }
         else {
             Reflect.setField(obj, id, value);
-        } 
+        }
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
 
     }
 

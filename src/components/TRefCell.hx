@@ -18,25 +18,18 @@ class TRefCell extends DropDown implements ICell implements IClickableCell {
 	public function new() {
 		super();
 		searchable = true;
-		trace(sheetName);
-		
 	}
 
 	public function set_sheetName(s:String) {
 		sheetName = s;
-		trace(sheetName);
 		var sheet = Main.mainView.base.getSheet(sheetName);
-		trace("bbbbb");
 		var elts = [for (d in sheet.all) {id: d.id, icon: d.ico, text: d.disp}];
-		trace("bbbbb");
 		dataSource = ArrayDataSource.fromArray(elts);
-		trace("bbbbb");
-		
 
 		return sheetName;
 	}
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 		var sheet = findAncestor(SheetView).sheet;
 
 		var col = SheetUtils.getColumnForName(sheet, id);
@@ -48,6 +41,11 @@ class TRefCell extends DropDown implements ICell implements IClickableCell {
 		} else {
 			Reflect.setField(obj, id, value);
 		}
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
 	}
 
 	public function validateCell(focusNext:Bool = true) {

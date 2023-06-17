@@ -36,7 +36,7 @@ class TFlagsCell extends DropDown implements ICell implements IClickableCell {
         handler.setFlags(a);
     }
 
-    public function saveCell(lineIndex:Int) {
+    public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 
         var sheet = findAncestor(SheetView).sheet;
         var obj = findAncestor(SheetView).objectToSave(lineIndex);
@@ -50,6 +50,11 @@ class TFlagsCell extends DropDown implements ICell implements IClickableCell {
         else {
             Reflect.setField(obj, id, bitValue);
         }
+
+        var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
     }
 
     public override function onReady() {
@@ -157,16 +162,13 @@ class MyDropDownHandler extends DropDownHandler {
         var view = cast(component, MyDropDownHandlerView);
         view.setFlags(a);
         for (c in _view.grid.findComponents(CheckBox)) {
-            trace(c);
             c.onChange = function(e) {
-
                 updateText();
             }
         }
     }
 
     public function setFlagsBit(value:Int) {
-        trace(value);
         var view = cast (component, MyDropDownHandlerView);
         var checkboxes = view.grid.findComponents(CheckBox);
         if (checkboxes.length <=0) return;

@@ -23,23 +23,21 @@ class TBoolCell extends InteractiveComponent implements ICell implements IClicka
     }
 
 
-    public function saveCell(lineIndex:Int) {	
+    public function saveCell(lineIndex:Int, previousValue:Dynamic) {	
         var sheet = findAncestor(SheetView).sheet;
 
         var col  = SheetUtils.getColumnForName(sheet, id);  
         var obj = findAncestor(SheetView).objectToSave(lineIndex);
-
-        trace("save", checkbox.selected);
-        trace(obj);
 
         if (col.opt && !checkbox.selected) {
             Reflect.deleteField(obj, id);
         }
         else {
             Reflect.setField(obj, id, checkbox.selected);
-            trace("should change", id, "to", checkbox.selected) ;
         }
-        trace(obj);
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, checkbox.value));
+        Main.mainView.historyBox.updateHistory();
     }
 
 	public override function set_value(value:Dynamic):Dynamic {

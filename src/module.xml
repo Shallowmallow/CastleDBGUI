@@ -3,7 +3,11 @@
 		<resource path="assets/locale" prefix="locale" />
 		<resource path="assets/styles" prefix="style" />
 		<resource path="assets/images" prefix="images" />
+		
 	</resources>
+	<components>
+		<class name="History"/>
+	</components>
 	<themes>
         <default>
 			<style resource="style/custom.css" />

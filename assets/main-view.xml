@@ -4,8 +4,10 @@
             <menuitem id="mnew" text="New" shortcutText="Ctrl+N" />
             <menuitem id="mopen" text="Open..." shortcutText="Ctrl+O" />
             <menuitem id="msave" text="Save As..." shortcutText="Shift+S" />
+            <menucheckbox id="mautosave"  text="Autosave"/>
             <menu id="mrecent" text="Recent Files" />
             <menuitem id="mclean" text="Clean Images" />
+            <menucheckbox id="mhistory" text="History" shortcutText="Ctrl+H" />
             <menuitem text="Enable Compression" shortcutText="Ctrl+A" />
             <menuitem id="mexit" text="Exit" shortcutText="Ctrl+Q" />
         </menu>
@@ -13,6 +15,7 @@
     <hbox width="100%" height="100%">
     <tabview id="tabs" width="100%" height="100%" closable="true" />
     <box id="sideview" width="300" height="100%" hidden="true"/>
+    <history id="historyBox" width="300" height="100%" hidden="true"/>
     </hbox>
     <hbox horizontalAlign="right">
             <label id="info_label" text=" " width="100%"/>

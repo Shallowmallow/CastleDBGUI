@@ -31,12 +31,17 @@ class TStringCell extends InteractiveComponent implements ICell implements IClic
 		allowFocus = false;
 	}
 
-	public function saveCell(lineIndex:Int) {
+	public function saveCell(lineIndex:Int, previousValue:Dynamic) {
 		var sheet = findAncestor(SheetView).sheet;
 
 		Reflect.setField(findAncestor(SheetView).objectToSave(lineIndex), id, value);
 		sheet.sync();
 		Main.mainView.save();
+
+		var col  = SheetUtils.getColumnForName(sheet, id);  
+        sheet.updateValue(col, lineIndex, previousValue);
+        Main.mainView.history2.push(MainView.HistoryElement2.ChangedField(sheet,id, lineIndex,previousValue, value));
+        Main.mainView.historyBox.updateHistory();
 	}
 
 	public function clickCell() {
